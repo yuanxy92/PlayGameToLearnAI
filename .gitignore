@@ -1,0 +1,22 @@
+# macOS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local editor files
+.idea/
+.vscode/
+
+# Local servers and caches
+.cache/
+.parcel-cache/
+node_modules/
+
+# Build output
+dist/
+build/
+

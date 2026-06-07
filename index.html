@@ -1,0 +1,2884 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PipeNet Lab</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #263047;
+      --muted: #66728a;
+      --line: #c9d7ea;
+      --paper: #fff8e8;
+      --panel: #ffffff;
+      --supply: #3bb978;
+      --pump: #ff6b6b;
+      --water: #48a9f8;
+      --target: #ffb02e;
+      --gold: #ffbf3f;
+      --shadow: 0 14px 28px rgba(74, 84, 122, .18);
+    }
+
+    * { box-sizing: border-box; }
+
+    [hidden] { display: none !important; }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(255, 218, 120, .38), transparent 24%),
+        linear-gradient(180deg, #bfe8ff 0%, #eaf8ff 42%, #dff2d7 100%);
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button, input { font: inherit; }
+
+    .app {
+      width: min(100vw, 560px);
+      max-width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      margin: 0 auto;
+      padding: clamp(6px, 1.3vh, 12px) 10px;
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    .welcome {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: grid;
+      place-items: center;
+      padding: 18px 14px;
+      background:
+        linear-gradient(180deg, rgba(220, 239, 255, .97), rgba(248, 250, 252, .98) 48%, rgba(237, 243, 232, .98));
+    }
+
+    .welcome.hidden {
+      display: none;
+    }
+
+    .welcome-panel {
+      width: min(100%, 520px);
+      max-height: min(92vh, 840px);
+      overflow: hidden;
+      border: 1px solid #c7d4e5;
+      border-radius: 10px;
+      background: #ffffff;
+      box-shadow: 0 22px 50px rgba(25, 36, 58, .18);
+    }
+
+    .town-scene {
+      position: relative;
+      height: 172px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, #bfe4ff 0%, #e7f5ff 58%, #dfead6 59%, #cfe1c4 100%);
+    }
+
+    .sun {
+      position: absolute;
+      top: 18px;
+      right: 32px;
+      width: 46px;
+      height: 46px;
+      border-radius: 50%;
+      background: #ffd36e;
+      box-shadow: 0 0 0 10px rgba(255, 211, 110, .24);
+    }
+
+    .hill {
+      position: absolute;
+      left: -34px;
+      right: -34px;
+      bottom: 30px;
+      height: 66px;
+      border-radius: 50% 50% 0 0;
+      background: #8fc082;
+    }
+
+    .tower {
+      position: absolute;
+      left: 28px;
+      bottom: 34px;
+      width: 56px;
+      height: 86px;
+    }
+
+    .tower::before {
+      content: "";
+      position: absolute;
+      left: 6px;
+      top: 0;
+      width: 44px;
+      height: 42px;
+      border-radius: 10px 10px 8px 8px;
+      background: #5aa8de;
+      border: 3px solid #2f5f87;
+    }
+
+    .tower::after {
+      content: "";
+      position: absolute;
+      left: 17px;
+      bottom: 0;
+      width: 22px;
+      height: 48px;
+      background: repeating-linear-gradient(90deg, #6b7280 0 4px, transparent 4px 13px);
+    }
+
+    .houses {
+      position: absolute;
+      right: 22px;
+      bottom: 34px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+    }
+
+    .house {
+      position: relative;
+      width: 46px;
+      height: 38px;
+      border: 2px solid #405168;
+      border-radius: 5px;
+      background: #fff4c9;
+    }
+
+    .house::before {
+      content: "";
+      position: absolute;
+      left: 5px;
+      top: -20px;
+      width: 31px;
+      height: 31px;
+      transform: rotate(45deg);
+      border-left: 2px solid #405168;
+      border-top: 2px solid #405168;
+      background: #e46b58;
+    }
+
+    .house.small {
+      width: 38px;
+      height: 31px;
+      background: #d6f2e3;
+    }
+
+    .canal {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 34px;
+      background: linear-gradient(90deg, #5fb6ee, #347fd6);
+      border-top: 3px solid rgba(28, 73, 120, .55);
+    }
+
+    .town-scene.low .canal {
+      height: 18px;
+      background: linear-gradient(90deg, #9ccbf0, #6fa7d6);
+    }
+
+    .town-scene.high .canal {
+      height: 52px;
+      background: linear-gradient(90deg, #51b8f0, #1f74c8);
+    }
+
+    .town-scene.high .houses {
+      bottom: 44px;
+    }
+
+    .town-scene.ready {
+      background:
+        linear-gradient(180deg, #bfe4ff 0%, #eaf8ff 54%, #d7ecd0 55%, #bedba8 100%);
+    }
+
+    .intro-scene {
+      display: none;
+    }
+
+    .intro-scene.active {
+      display: block;
+    }
+
+    .intro-copy {
+      min-height: 390px;
+      padding: 17px 16px 13px;
+    }
+
+    .scene-badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 4px 8px;
+      border-radius: 7px;
+      background: #eff6ff;
+      color: #2458a8;
+      font-size: 11px;
+      font-weight: 820;
+    }
+
+    .scene-title {
+      margin: 10px 0 8px;
+      font-size: 25px;
+      line-height: 1.12;
+      font-weight: 860;
+    }
+
+    .scene-text {
+      margin: 0 0 12px;
+      color: #3d4a5d;
+      font-size: 14px;
+      line-height: 1.58;
+    }
+
+    .mission-card {
+      display: grid;
+      gap: 8px;
+      margin-top: 13px;
+      padding: 11px;
+      border: 1px solid #cbd6e6;
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .mission-row {
+      display: grid;
+      grid-template-columns: 42px 1fr;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .mission-icon {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 8px;
+      color: #fff;
+      font-weight: 860;
+      background: #2458a8;
+    }
+
+    .mission-icon.low { background: #6f8fa8; }
+    .mission-icon.high { background: #d25645; }
+    .mission-icon.good { background: #2aa06f; }
+
+    .mission-row strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 13px;
+    }
+
+    .mission-row span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.42;
+    }
+
+    .intro-footer {
+      display: grid;
+      gap: 10px;
+      padding: 12px 16px 16px;
+      border-top: 1px solid var(--line);
+      background: #ffffff;
+    }
+
+    .intro-dots {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+    }
+
+    .intro-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 99px;
+      background: #cbd5e1;
+    }
+
+    .intro-dot.active {
+      width: 22px;
+      background: #2458a8;
+    }
+
+    .intro-actions {
+      display: grid;
+      grid-template-columns: 1fr 1.35fr;
+      gap: 9px;
+    }
+
+    .skip-link {
+      min-height: 34px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .welcome-copy {
+      padding: 17px 16px 16px;
+    }
+
+    .welcome-copy h2 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .story-text {
+      margin: 0 0 12px;
+      color: #3d4a5d;
+      font-size: 14px;
+      line-height: 1.58;
+    }
+
+    .stakes {
+      display: grid;
+      gap: 8px;
+      margin: 13px 0;
+    }
+
+    .stake {
+      display: grid;
+      grid-template-columns: 34px 1fr;
+      gap: 9px;
+      align-items: start;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+
+    .stake-mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #eaf2ff;
+      color: #2458a8;
+      font-weight: 820;
+    }
+
+    .stake strong {
+      display: block;
+      margin-bottom: 2px;
+      font-size: 13px;
+    }
+
+    .stake span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .welcome-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .ghost {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 760;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 0;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.05;
+      font-weight: 820;
+    }
+
+    .subtitle {
+      margin-top: 3px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .progress {
+      flex: 0 0 auto;
+      min-width: 78px;
+      padding: 6px 9px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: #fff8df;
+      text-align: center;
+      box-shadow: inset 0 -3px 0 rgba(232, 183, 62, .28), 0 6px 16px rgba(25, 36, 58, .08);
+    }
+
+    .progress strong {
+      display: block;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .progress span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .map-button {
+      min-height: 40px;
+      padding: 0 12px;
+      border: 1px solid #9eb8d8;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .86);
+      color: #263047;
+      box-shadow: inset 0 -3px 0 rgba(72, 169, 248, .16), 0 6px 16px rgba(25, 36, 58, .08);
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 860;
+    }
+
+    .chapter-map {
+      grid-row: 2 / -1;
+      min-height: 0;
+      height: 100%;
+      display: grid;
+      grid-template-rows: minmax(0, 1fr) auto;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background:
+        linear-gradient(180deg, rgba(255, 253, 246, .38), rgba(255, 245, 215, .48)),
+        url("./assets/board-bg.png");
+      background-size: cover;
+      background-position: center;
+      box-shadow: var(--shadow);
+    }
+
+    .map-scene {
+      position: relative;
+      min-height: 0;
+      padding: 14px;
+      overflow: hidden;
+    }
+
+    .map-town {
+      position: absolute;
+      right: 10px;
+      top: 12px;
+      width: 118px;
+      opacity: .96;
+      filter: drop-shadow(0 8px 10px rgba(38, 48, 71, .16));
+      pointer-events: none;
+    }
+
+    .map-title {
+      position: relative;
+      z-index: 1;
+      max-width: 260px;
+    }
+
+    .map-title h2 {
+      margin: 0 0 6px;
+      font-size: 24px;
+      line-height: 1.08;
+    }
+
+    .map-title p {
+      margin: 0;
+      color: #526178;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .chapter-road {
+      position: absolute;
+      left: 50px;
+      right: 46px;
+      top: 150px;
+      height: 180px;
+      border-left: 8px dotted rgba(82, 100, 126, .28);
+      transform: rotate(58deg);
+      transform-origin: left top;
+      pointer-events: none;
+    }
+
+    .chapter-node {
+      position: absolute;
+      z-index: 2;
+      display: grid;
+      gap: 6px;
+      width: min(78%, 330px);
+      padding: 12px;
+      border: 1px solid #bfd0e6;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, .92);
+      box-shadow: 0 14px 24px rgba(38, 48, 71, .16), inset 0 -4px 0 rgba(72, 169, 248, .12);
+      text-align: left;
+    }
+
+    .chapter-node.one {
+      left: 16px;
+      bottom: 138px;
+    }
+
+    .chapter-node.two {
+      right: 16px;
+      bottom: 18px;
+    }
+
+    .chapter-node.locked {
+      opacity: .72;
+      filter: grayscale(.28);
+    }
+
+    .node-kicker {
+      color: #256ea8;
+      font-size: 11px;
+      font-weight: 860;
+    }
+
+    .chapter-node strong {
+      display: block;
+      font-size: 18px;
+      line-height: 1.14;
+    }
+
+    .chapter-node span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.38;
+    }
+
+    .chapter-node button {
+      min-height: 36px;
+      border: 1px solid #2167ae;
+      border-radius: 9px;
+      background: linear-gradient(180deg, #4fb4ff, #2e76d2);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: inset 0 -4px 0 rgba(23, 73, 132, .25);
+      font-size: 13px;
+      font-weight: 860;
+    }
+
+    .chapter-node button:disabled {
+      border-color: #c2ccda;
+      background: #f3f6fa;
+      color: #7b8798;
+      box-shadow: none;
+      cursor: default;
+    }
+
+    .map-footer {
+      display: grid;
+      gap: 4px;
+      padding: 10px 12px;
+      border-top: 1px solid rgba(201, 215, 234, .8);
+      background: rgba(255, 253, 248, .9);
+      color: #58657b;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .level-strip {
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: minmax(126px, 1fr);
+      gap: 8px;
+      overflow-x: auto;
+      padding: 0 0 2px;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+
+    .level-strip::-webkit-scrollbar { display: none; }
+
+    .level-card {
+      min-height: 58px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .9);
+      color: var(--ink);
+      text-align: left;
+      padding: 7px 8px;
+      scroll-snap-align: start;
+      cursor: pointer;
+    }
+
+    .level-card.active {
+      border-color: #3178c7;
+      background: #ffffff;
+      box-shadow: inset 0 -4px 0 rgba(72, 169, 248, .18), 0 8px 20px rgba(36, 88, 168, .16);
+    }
+
+    .level-card.locked {
+      opacity: .58;
+      cursor: default;
+      filter: grayscale(.45);
+    }
+
+    .level-card .kicker {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 11px;
+      margin-bottom: 3px;
+    }
+
+    .level-card .name {
+      font-size: 12px;
+      font-weight: 760;
+      line-height: 1.25;
+    }
+
+    .stars {
+      color: var(--gold);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .stage {
+      position: relative;
+      min-height: 0;
+      display: grid;
+      grid-template-areas:
+        "brief"
+        "samples"
+        "board"
+        "hud"
+        "report"
+        "actions"
+        "feedback";
+      grid-template-rows: auto min-content minmax(0, 1fr) auto auto auto auto;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: #fffdf6;
+      box-shadow: var(--shadow);
+    }
+
+    .brief {
+      grid-area: brief;
+      display: grid;
+      gap: 5px;
+      padding: 9px 10px 8px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fffdf7, #fff7df);
+    }
+
+    .chapter-label {
+      width: fit-content;
+      padding: 4px 7px;
+      border-radius: 6px;
+      background: #dff4ff;
+      color: #256ea8;
+      font-size: 11px;
+      font-weight: 760;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.15;
+    }
+
+    .objective {
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .sample-row {
+      grid-area: samples;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 6px 10px;
+      scrollbar-width: none;
+    }
+
+    .sample-row::-webkit-scrollbar { display: none; }
+
+    .sample-btn {
+      flex: 0 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      padding: 7px 9px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .sample-btn.active {
+      border-color: #2458a8;
+      background: #eaf2ff;
+    }
+
+    .pipe-board {
+      grid-area: board;
+      position: relative;
+      min-height: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 253, 246, .1), rgba(255, 253, 246, .18)),
+        url("./assets/board-bg.png");
+      background-size: cover;
+      background-position: center;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      min-height: 224px;
+    }
+
+    .node-label {
+      font-size: 12px;
+      font-weight: 760;
+      fill: #263244;
+      paint-order: stroke;
+      stroke: rgba(255, 253, 246, .88);
+      stroke-width: 4px;
+      stroke-linejoin: round;
+    }
+
+    .node-small {
+      font-size: 10px;
+      fill: var(--muted);
+      paint-order: stroke;
+      stroke: rgba(255, 253, 246, .88);
+      stroke-width: 3px;
+      stroke-linejoin: round;
+    }
+
+    .pipe-bg {
+      stroke: #d6a66b;
+      stroke-linecap: round;
+      fill: none;
+      opacity: .9;
+    }
+
+    .pipe-placeholder {
+      stroke: rgba(112, 128, 150, .48);
+      stroke-linecap: round;
+      stroke-dasharray: 7 9;
+      fill: none;
+      opacity: .72;
+    }
+
+    .pipe {
+      stroke-linecap: round;
+      fill: none;
+      filter: drop-shadow(0 3px 4px rgba(31, 41, 55, .18));
+    }
+
+    .pipe.disabled {
+      stroke: #cbd5e1;
+      stroke-dasharray: 7 8;
+      filter: none;
+      opacity: .66;
+    }
+
+    .flow-dot {
+      opacity: .92;
+      animation: drift 1s linear infinite;
+    }
+
+    .pipe-water-base {
+      fill: none;
+      stroke-linecap: round;
+      opacity: .58;
+      filter: drop-shadow(0 1px 2px rgba(255, 255, 255, .36));
+    }
+
+    .pipe-core-flow {
+      fill: none;
+      stroke-linecap: round;
+      opacity: .95;
+      animation: drift .72s linear infinite;
+      filter: drop-shadow(0 1px 2px rgba(255, 255, 255, .45));
+    }
+
+    .pump-flow {
+      animation-name: reverseDrift;
+      opacity: .9;
+    }
+
+    .flow-dot:nth-of-type(2n) { animation-delay: -.42s; }
+    .flow-dot:nth-of-type(3n) { animation-delay: -.84s; }
+
+    @keyframes drift {
+      from { stroke-dashoffset: 56; }
+      to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes reverseDrift {
+      from { stroke-dashoffset: 0; }
+      to { stroke-dashoffset: 56; }
+    }
+
+    .sprite-bob {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: spriteBob 2.4s ease-in-out infinite;
+    }
+
+    .sprite-bob.slow { animation-duration: 3.1s; }
+
+    .sprite-pop {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: spritePop 1.5s ease-in-out infinite;
+    }
+
+    .pool-swirl {
+      fill: none;
+      stroke: rgba(255, 255, 255, .82);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 20 22;
+      animation: rippleDrift 2.4s ease-in-out infinite;
+    }
+
+    .pool-shine {
+      fill: none;
+      stroke: rgba(255, 255, 255, .65);
+      stroke-width: 3;
+      stroke-linecap: round;
+      animation: shinePulse 2.1s ease-in-out infinite;
+    }
+
+    .water-spark {
+      fill: #ffffff;
+      opacity: .75;
+      animation: sparkle 1.6s ease-in-out infinite;
+    }
+
+    .water-spark.delay { animation-delay: -.7s; }
+
+    @keyframes spriteBob {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    @keyframes spritePop {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.035); }
+    }
+
+    @keyframes rippleDrift {
+      0%, 100% { stroke-dashoffset: 0; opacity: .42; transform: translateY(0); }
+      50% { stroke-dashoffset: -18; opacity: .82; transform: translateY(-2px); }
+    }
+
+    @keyframes shinePulse {
+      0%, 100% { opacity: .2; transform: translateX(-2px); }
+      50% { opacity: .78; transform: translateX(4px); }
+    }
+
+    @keyframes sparkle {
+      0%, 100% { transform: translateY(0) scale(.7); opacity: .35; }
+      50% { transform: translateY(-8px) scale(1); opacity: .92; }
+    }
+
+    .meter-card {
+      grid-area: hud;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 90px;
+      padding: 8px 9px;
+      background:
+        radial-gradient(circle at 14% 14%, rgba(255, 255, 255, .86), transparent 28%),
+        linear-gradient(180deg, #fff8df, #ffedb8);
+      border-top: 1px solid #ead69a;
+    }
+
+    .tank {
+      position: relative;
+      width: 68px;
+      height: 70px;
+      border: 3px solid #52647e;
+      border-radius: 20px 20px 16px 16px;
+      overflow: hidden;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, .9), rgba(220, 245, 255, .74)),
+        #ffffff;
+      box-shadow:
+        inset 0 5px 0 rgba(255, 255, 255, .78),
+        inset 0 -6px 12px rgba(54, 113, 173, .12),
+        0 4px 0 rgba(84, 98, 125, .16);
+    }
+
+    .fill {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      min-height: 2px;
+      background:
+        radial-gradient(ellipse at 42% 8%, rgba(255, 255, 255, .84) 0 8%, transparent 9%),
+        linear-gradient(180deg, rgba(110, 213, 255, .88), rgba(56, 147, 238, .96));
+      transition: height .22s ease;
+    }
+
+    .fill::before {
+      content: "";
+      position: absolute;
+      left: -18%;
+      right: -18%;
+      top: -7px;
+      height: 16px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, .55);
+      animation: hudWave 1.9s ease-in-out infinite;
+    }
+
+    .target-line {
+      position: absolute;
+      left: 6px;
+      right: 6px;
+      height: 0;
+      border-top: 3px dashed var(--target);
+      transition: bottom .22s ease;
+      z-index: 2;
+      filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .7));
+    }
+
+    .tank::after {
+      content: "";
+      position: absolute;
+      left: 13px;
+      top: 10px;
+      width: 13px;
+      height: 38px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .46);
+      pointer-events: none;
+    }
+
+    @keyframes hudWave {
+      0%, 100% { transform: translateX(-5px) scaleY(.82); opacity: .42; }
+      50% { transform: translateX(5px) scaleY(1); opacity: .78; }
+    }
+
+    .meter-value {
+      display: grid;
+      gap: 4px;
+      font-size: 12px;
+      font-weight: 760;
+    }
+
+    .water-hud {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: 74px minmax(0, 1fr);
+      gap: 9px;
+      align-items: center;
+    }
+
+    .hud-copy {
+      min-width: 0;
+      display: grid;
+      gap: 5px;
+    }
+
+    .hud-top {
+      display: grid;
+      gap: 4px;
+      color: #46536a;
+      font-size: 13px;
+      font-weight: 820;
+    }
+
+    .hud-top > span:first-child {
+      color: #263047;
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .hud-status {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 22px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: #ffffff;
+      border: 1px solid #ead69a;
+      color: #4b5a70;
+      font-size: 11px;
+      font-weight: 820;
+      white-space: nowrap;
+    }
+
+    .report-btn {
+      width: 70px;
+      min-height: 68px;
+      border: 1px solid #2c6fb8;
+      border-radius: 14px;
+      background: linear-gradient(180deg, #5fb7ff, #2e78d4);
+      color: #fff;
+      box-shadow: inset 0 -4px 0 rgba(31, 78, 145, .28);
+      cursor: pointer;
+      font-weight: 860;
+      line-height: 1.2;
+    }
+
+    .controls {
+      display: none;
+      gap: 10px;
+      padding: 12px 13px 14px;
+      border-top: 1px solid var(--line);
+      background: #f8fafc;
+    }
+
+    .control {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      padding: 10px;
+    }
+
+    .control-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    .control-value {
+      color: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .control-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .seg-btn {
+      min-height: 38px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .seg-btn.active.supply {
+      border-color: var(--supply);
+      background: #eaf8f1;
+    }
+
+    .seg-btn.active.pump {
+      border-color: var(--pump);
+      background: #fff0ed;
+    }
+
+    .install {
+      width: 100%;
+      margin-bottom: 8px;
+      min-height: 36px;
+      border: 1px solid #adb7c7;
+      border-radius: 7px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .install.on {
+      border-color: #2458a8;
+      background: #eaf2ff;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: #2458a8;
+    }
+
+    .formula {
+      grid-area: report;
+      display: none;
+      padding: 9px 10px;
+      border-top: 1px solid var(--line);
+      background: #263047;
+      color: #edf2f7;
+      font-size: 12px;
+      line-height: 1.38;
+    }
+
+    .formula.open { display: block; }
+
+    .formula code {
+      color: #d7f6e8;
+      white-space: normal;
+    }
+
+    .actions {
+      grid-area: actions;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 8px 10px;
+      background: #fff;
+      border-top: 1px solid var(--line);
+    }
+
+    .primary, .secondary {
+      min-height: 38px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 760;
+    }
+
+    .primary {
+      border: 1px solid #2167ae;
+      background: linear-gradient(180deg, #4fb4ff, #2e76d2);
+      color: #fff;
+      box-shadow: inset 0 -4px 0 rgba(23, 73, 132, .25);
+    }
+
+    .secondary {
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      color: var(--ink);
+    }
+
+    .secondary:disabled {
+      color: #9aa5b5;
+      background: #f4f6f9;
+      cursor: default;
+    }
+
+    .feedback {
+      grid-area: feedback;
+      min-height: 36px;
+      padding: 7px 10px 9px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.32;
+      background: #fffdf8;
+    }
+
+    .feedback.good { color: #146c45; }
+    .feedback.close { color: #835500; }
+
+    .pipe-hit {
+      stroke: transparent;
+      stroke-width: 34;
+      stroke-linecap: round;
+      fill: none;
+      cursor: pointer;
+      pointer-events: stroke;
+    }
+
+    .pipe-select-ring {
+      stroke: #f6c343;
+      stroke-width: 18;
+      stroke-linecap: round;
+      fill: none;
+      opacity: .42;
+    }
+
+    .sheet-scrim {
+      position: absolute;
+      inset: 0;
+      z-index: 8;
+      display: none;
+      background: transparent;
+      pointer-events: none;
+    }
+
+    .sheet-scrim.open {
+      display: block;
+    }
+
+    .pipe-sheet {
+      position: absolute;
+      left: 8px;
+      right: 8px;
+      top: 49%;
+      z-index: 9;
+      display: none;
+      border: 1px solid #bcc8d8;
+      border-radius: 10px;
+      background: #ffffff;
+      box-shadow: 0 16px 36px rgba(15, 23, 42, .2);
+      overflow: hidden;
+      transform: translateY(-50%);
+      max-height: min(292px, 45vh);
+    }
+
+    .pipe-sheet.open {
+      display: block;
+    }
+
+    .clear-modal {
+      position: absolute;
+      inset: 0;
+      z-index: 12;
+      display: none;
+      place-items: center;
+      padding: 16px;
+      background: rgba(38, 48, 71, .28);
+    }
+
+    .clear-modal.open {
+      display: grid;
+    }
+
+    .clear-card {
+      width: min(100%, 340px);
+      border: 1px solid #e5c469;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fffaf0, #fff2c7);
+      box-shadow: 0 18px 38px rgba(31, 41, 55, .28), inset 0 4px 0 rgba(255, 255, 255, .7);
+      overflow: hidden;
+      text-align: center;
+    }
+
+    .clear-top {
+      padding: 18px 16px 10px;
+      background: radial-gradient(circle at 50% 0%, rgba(255, 216, 93, .5), transparent 62%);
+    }
+
+    .clear-stars {
+      color: var(--gold);
+      font-size: 30px;
+      line-height: 1;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+      text-shadow: 0 2px 0 rgba(122, 82, 20, .16);
+    }
+
+    .clear-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.15;
+      font-weight: 900;
+      color: #263047;
+    }
+
+    .clear-body {
+      display: grid;
+      gap: 10px;
+      padding: 12px 16px 16px;
+      color: #4f5f78;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .clear-lesson {
+      padding: 10px;
+      border: 1px solid #ead69a;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .72);
+      text-align: left;
+    }
+
+    .clear-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .summary-modal {
+      position: absolute;
+      inset: 0;
+      z-index: 13;
+      display: none;
+      place-items: center;
+      padding: 14px;
+      background: rgba(38, 48, 71, .32);
+    }
+
+    .summary-modal.open {
+      display: grid;
+    }
+
+    .summary-card {
+      width: min(100%, 390px);
+      max-height: min(96%, 720px);
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr) auto;
+      overflow: hidden;
+      border: 1px solid #dec06b;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #fffaf0, #fff6dc);
+      box-shadow: 0 18px 42px rgba(31, 41, 55, .3), inset 0 4px 0 rgba(255, 255, 255, .7);
+    }
+
+    .summary-head {
+      padding: 16px 16px 10px;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(255, 212, 96, .46), transparent 48%),
+        linear-gradient(180deg, rgba(255, 255, 255, .65), rgba(255, 245, 208, .4));
+    }
+
+    .summary-badge {
+      display: inline-flex;
+      min-height: 24px;
+      align-items: center;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #e6f6ff;
+      color: #256ea8;
+      font-size: 11px;
+      font-weight: 860;
+    }
+
+    .summary-head h2 {
+      margin: 8px 0 5px;
+      font-size: 23px;
+      line-height: 1.12;
+    }
+
+    .summary-head p {
+      margin: 0;
+      color: #526178;
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .summary-body {
+      display: grid;
+      gap: 10px;
+      overflow: auto;
+      padding: 12px 14px;
+    }
+
+    .formula-block {
+      border: 1px solid #ead69a;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, .76);
+      padding: 10px;
+    }
+
+    .formula-block strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .formula-block p {
+      margin: 0 0 7px;
+      color: #526178;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .formula-line {
+      display: block;
+      margin: 5px 0;
+      padding: 7px 9px;
+      border-radius: 8px;
+      background: #263047;
+      color: #f7fbff;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+      line-height: 1.35;
+      white-space: normal;
+    }
+
+    .formula-note {
+      display: grid;
+      gap: 4px;
+      color: #526178;
+      font-size: 12px;
+      line-height: 1.42;
+    }
+
+    .summary-actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 12px 14px 14px;
+      border-top: 1px solid #ead69a;
+      background: rgba(255, 253, 248, .78);
+    }
+
+    .sheet-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 10px 8px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sheet-title {
+      min-width: 0;
+      font-size: 14px;
+      font-weight: 820;
+    }
+
+    .sheet-value {
+      color: var(--muted);
+      font-size: 12px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sheet-close {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .sheet-body {
+      display: grid;
+      gap: 9px;
+      padding: 10px;
+      overflow: auto;
+      max-height: min(224px, 34vh);
+    }
+
+    .sheet-types, .preset-row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .preset-row {
+      grid-template-columns: repeat(5, 1fr);
+    }
+
+    .nudge-row {
+      display: grid;
+      grid-template-columns: 48px 1fr 48px;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .nudge-btn, .preset-btn {
+      min-height: 40px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      color: var(--ink);
+      cursor: pointer;
+      font-weight: 760;
+    }
+
+    .nudge-btn:disabled, .preset-btn:disabled {
+      color: #a2acbb;
+      background: #f3f6fa;
+      cursor: default;
+      opacity: .76;
+    }
+
+    .nudge-btn {
+      font-size: 20px;
+    }
+
+    .preset-btn.active {
+      border-color: #2458a8;
+      background: #eaf2ff;
+    }
+
+    .install-sheet-btn {
+      min-height: 40px;
+      border: 1px solid #2458a8;
+      border-radius: 8px;
+      background: #eaf2ff;
+      color: #1c4f96;
+      cursor: pointer;
+      font-weight: 820;
+    }
+
+    @media (min-width: 760px) {
+      .app {
+        width: min(100%, 820px);
+        padding: 14px;
+      }
+
+      h1 { font-size: 24px; }
+
+      .level-card { min-height: 62px; }
+
+      .pipe-sheet {
+        left: 50%;
+        right: auto;
+        width: 420px;
+        transform: translate(-50%, -50%);
+      }
+    }
+
+    @media (max-width: 430px) {
+      .topbar {
+        gap: 8px;
+      }
+
+      h1 {
+        font-size: 19px;
+      }
+
+      .map-button {
+        min-height: 38px;
+        padding: 0 9px;
+      }
+
+      .progress {
+        min-width: 64px;
+        padding: 5px 7px;
+      }
+    }
+
+    @media (max-height: 720px) {
+      .app {
+        padding-top: 6px;
+        padding-bottom: 6px;
+        gap: 6px;
+      }
+
+      .subtitle { display: none; }
+
+      .progress {
+        min-width: 68px;
+        padding: 5px 8px;
+      }
+
+      .level-card {
+        min-height: 50px;
+        padding: 6px 7px;
+      }
+
+      .level-card .kicker {
+        font-size: 10px;
+      }
+
+      .level-card .name {
+        font-size: 11px;
+      }
+
+      .brief {
+        padding: 7px 9px;
+      }
+
+      h2 {
+        font-size: 15px;
+      }
+
+      .objective {
+        -webkit-line-clamp: 1;
+      }
+
+      svg {
+        min-height: 172px;
+      }
+
+      .meter-card {
+        min-height: 78px;
+        padding: 6px 9px;
+      }
+
+      .water-hud {
+        grid-template-columns: 60px minmax(0, 1fr);
+        gap: 7px;
+      }
+
+      .tank {
+        width: 55px;
+        height: 58px;
+        border-radius: 17px 17px 14px 14px;
+      }
+
+      .hud-top > span:first-child {
+        font-size: 13px;
+      }
+
+      .meter-value {
+        font-size: 11px;
+      }
+
+      .report-btn {
+        width: 64px;
+        min-height: 58px;
+      }
+
+      .actions {
+        padding: 6px 9px;
+      }
+
+      .primary, .secondary {
+        min-height: 34px;
+      }
+
+      .feedback {
+        min-height: 30px;
+        padding: 6px 9px;
+      }
+
+      .pipe-sheet {
+        top: 45%;
+        max-height: min(248px, 43vh);
+      }
+
+      .sheet-body {
+        gap: 7px;
+        padding: 8px;
+        max-height: min(188px, 32vh);
+      }
+
+      .nudge-btn, .preset-btn, .install-sheet-btn {
+        min-height: 34px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div class="brand">
+        <h1>神经水厂</h1>
+        <div class="subtitle">青溪镇通水冒险</div>
+      </div>
+      <div class="top-actions">
+        <button class="map-button" id="mapBtn">地图</button>
+        <div class="progress">
+          <strong id="progressCount">0/7</strong>
+          <span>已通水</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="chapter-map" id="chapterMap" aria-labelledby="mapTitle">
+      <div class="map-scene">
+        <img class="map-town" src="./assets/qingxi-town-alpha.png" alt="">
+        <div class="map-title">
+          <h2 id="mapTitle">青溪镇地图</h2>
+          <p>沿着水路修复每一片区域。每一章学会一种小机器的规律。</p>
+        </div>
+        <div class="chapter-road" aria-hidden="true"></div>
+        <div class="chapter-node one">
+          <div class="node-kicker">第 1 章 · 线性水路</div>
+          <strong>管道粗细和泵站</strong>
+          <span id="chapterOneStatus">学会让水量按直线规则变化。</span>
+          <button id="startChapterOneBtn">进入第 1 章</button>
+        </div>
+        <div class="chapter-node two locked" id="chapterTwoNode">
+          <div class="node-kicker">第 2 章 · 闸门系统</div>
+          <strong>激活函数</strong>
+          <span id="chapterTwoStatus">止回阀、限流阀和软闸门正在建设中。</span>
+          <button id="chapterTwoBtn" disabled>即将开放</button>
+        </div>
+      </div>
+      <div class="map-footer">
+        <strong id="mapFooterTitle">当前目标：修完第 1 章</strong>
+        <span id="mapFooterText">通关后会解锁水路档案，把游戏里的水管翻译成 y = wx + b。</span>
+      </div>
+    </section>
+
+    <nav class="level-strip" id="levelStrip" aria-label="关卡"></nav>
+
+    <section class="stage" id="gameStage">
+      <div class="brief">
+        <span class="chapter-label" id="chapterLabel"></span>
+        <h2 id="levelTitle"></h2>
+        <p class="objective" id="objective"></p>
+      </div>
+
+      <div class="sample-row" id="sampleRow"></div>
+
+      <div class="pipe-board">
+        <svg id="board" viewBox="0 0 390 318" role="img" aria-label="水管神经网络关卡" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
+      </div>
+
+      <div class="meter-card">
+        <div class="water-hud">
+          <div class="tank">
+            <div class="target-line" id="targetLine"></div>
+            <div class="fill" id="outputFill"></div>
+          </div>
+          <div class="hud-copy">
+            <div class="hud-top">
+              <span>供水池</span>
+              <span class="hud-status" id="starsValue">未达标</span>
+            </div>
+            <div class="meter-value">
+              <span id="outputValue">等待进水</span>
+              <span id="targetValue">目标：黄线</span>
+            </div>
+          </div>
+        </div>
+        <button class="report-btn" id="reportBtn">水路<br>日志</button>
+      </div>
+
+      <div class="controls" id="controls"></div>
+
+      <div class="formula" id="reportPanel">
+        <code id="formulaText"></code>
+      </div>
+
+      <div class="actions">
+        <button class="secondary" id="resetBtn">重来一次</button>
+        <button class="primary" id="checkBtn">放水试试</button>
+      </div>
+      <div class="feedback" id="feedback">接好水管，把水送到黄线附近。</div>
+      <div class="sheet-scrim" id="sheetScrim"></div>
+      <div class="pipe-sheet" id="pipeSheet" aria-live="polite"></div>
+      <div class="clear-modal" id="clearModal" role="dialog" aria-modal="true" aria-labelledby="clearTitle">
+        <div class="clear-card">
+          <div class="clear-top">
+            <div class="clear-stars" id="clearStars">★★★</div>
+            <h2 class="clear-title" id="clearTitle">水路打通！</h2>
+          </div>
+          <div class="clear-body">
+            <div id="clearMessage">供水池已经贴近目标水线。</div>
+            <div class="clear-lesson" id="clearLesson"></div>
+            <div class="clear-actions">
+              <button class="secondary" id="clearReplayBtn">再玩一次</button>
+              <button class="primary" id="clearNextBtn">下一关</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="summary-modal" id="chapterSummary" role="dialog" aria-modal="true" aria-labelledby="summaryTitle">
+        <div class="summary-card">
+          <div class="summary-head">
+            <span class="summary-badge">第 1 章档案</span>
+            <h2 id="summaryTitle">线性水路的秘密</h2>
+            <p>你刚刚修好的 7 段水路，其实都在做同一件事：把输入水量按管道粗细放大或缩小，再加上一点泵站水量。</p>
+          </div>
+          <div class="summary-body">
+            <div class="formula-block">
+              <strong>1. 游戏里的名字</strong>
+              <div class="formula-note">
+                <span>水源读数：x</span>
+                <span>管道粗细：w</span>
+                <span>泵站水量：b</span>
+                <span>供水池水量：y</span>
+              </div>
+            </div>
+            <div class="formula-block">
+              <strong>2. 一根管道</strong>
+              <p>输入水量越大，输出越大；管道越粗，影响越大。</p>
+              <code class="formula-line">y = x × w</code>
+            </div>
+            <div class="formula-block">
+              <strong>3. 加上泵站</strong>
+              <p>泵站不看某一个水源，它会让整段水路整体升高或降低。</p>
+              <code class="formula-line">y = x × w + b</code>
+            </div>
+            <div class="formula-block">
+              <strong>4. 两个水源合流</strong>
+              <p>每一根管道都贡献一部分水量，最后在合流池加起来。</p>
+              <code class="formula-line">y = x1 × w1 + x2 × w2 + b</code>
+            </div>
+            <div class="formula-block">
+              <strong>5. 大学里的写法</strong>
+              <p>当水源很多、一天里有很多组水情时，大家会把它写得更短：</p>
+              <code class="formula-line">y = Xw + b</code>
+              <div class="formula-note">
+                <span>X：一批水源读数</span>
+                <span>w：所有管道粗细</span>
+                <span>b：泵站水量</span>
+              </div>
+            </div>
+          </div>
+          <div class="summary-actions">
+            <button class="secondary" id="summaryReplayBtn">重玩第 1 章</button>
+            <button class="primary" id="summaryMapBtn">回到地图</button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <section class="welcome" id="welcomeScreen" aria-labelledby="welcomeTitle">
+    <div class="welcome-panel">
+      <div class="intro-scene active" data-scene="0">
+        <div class="town-scene ready" aria-hidden="true">
+          <div class="sun"></div>
+          <div class="hill"></div>
+          <div class="tower"></div>
+          <div class="houses">
+            <div class="house small"></div>
+            <div class="house"></div>
+            <div class="house small"></div>
+          </div>
+          <div class="canal"></div>
+        </div>
+        <div class="intro-copy">
+          <span class="scene-badge">PipeNet Lab</span>
+          <h2 class="scene-title" id="welcomeTitle">青溪镇的水路，等你打通</h2>
+          <p class="scene-text">
+            小镇刚建成一套自动供水系统。山泉、井水、雨水槽会把不同的水量送进水厂，再分给居民区、花房和工坊。
+          </p>
+          <p class="scene-text">
+            但新水路还不懂“刚刚好”。你要进入神经水厂，调好一座座小水闸。
+          </p>
+          <div class="mission-card">
+            <div class="mission-row">
+              <div class="mission-icon good">准</div>
+              <div>
+                <strong>最终目标</strong>
+                <span>让供水池贴近黄线，恢复每个区域的稳定供水。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="intro-scene" data-scene="1">
+        <div class="town-scene low" aria-hidden="true">
+          <div class="sun"></div>
+          <div class="hill"></div>
+          <div class="tower"></div>
+          <div class="houses">
+            <div class="house small"></div>
+            <div class="house"></div>
+            <div class="house small"></div>
+          </div>
+          <div class="canal"></div>
+        </div>
+        <div class="intro-copy">
+          <span class="scene-badge">问题 1 · 水位太低</span>
+          <h2 class="scene-title">水不够，小镇就会断流</h2>
+          <p class="scene-text">
+            如果供水池低于黄线，山坡上的水压会掉下去，花房喷头会断断续续，工坊冷却水也会不稳定。
+          </p>
+          <p class="scene-text">
+            在游戏里，这意味着你的预测偏小了。你需要让某些输水管更有影响力。
+          </p>
+          <div class="mission-card">
+            <div class="mission-row">
+              <div class="mission-icon low">低</div>
+              <div>
+                <strong>惩罚</strong>
+                <span>差得越多，星级越低；严重偏低时，这段水路过不了。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="intro-scene" data-scene="2">
+        <div class="town-scene high" aria-hidden="true">
+          <div class="sun"></div>
+          <div class="hill"></div>
+          <div class="tower"></div>
+          <div class="houses">
+            <div class="house small"></div>
+            <div class="house"></div>
+            <div class="house small"></div>
+          </div>
+          <div class="canal"></div>
+        </div>
+        <div class="intro-copy">
+          <span class="scene-badge">问题 2 · 水位太高</span>
+          <h2 class="scene-title">水太多，也不是好消息</h2>
+          <p class="scene-text">
+            如果供水池超过黄线，蓄水渠会溢出，老管线会承压，水泵还会白白耗电。
+          </p>
+          <p class="scene-text">
+            有些水源太猛时，系统反而要少放一点。抽水管就是这种“压住水位”的作用。
+          </p>
+          <div class="mission-card">
+            <div class="mission-row">
+              <div class="mission-icon high">高</div>
+              <div>
+                <strong>规则</strong>
+                <span>不是越多越好。你的目标是贴近黄线，而不是把池子灌满。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="intro-scene" data-scene="3">
+        <div class="town-scene ready" aria-hidden="true">
+          <div class="sun"></div>
+          <div class="hill"></div>
+          <div class="tower"></div>
+          <div class="houses">
+            <div class="house small"></div>
+            <div class="house"></div>
+            <div class="house small"></div>
+          </div>
+          <div class="canal"></div>
+        </div>
+        <div class="intro-copy">
+          <span class="scene-badge">你的身份 · 水路守护员</span>
+          <h2 class="scene-title">每一关，都是一座小水闸</h2>
+          <p class="scene-text">
+            你会连接输水管、抽水管和泵站，让供水池尽量贴近黄线。做得越稳，小镇恢复得越快。
+          </p>
+          <p class="scene-text">
+            等你修完第一组水闸，再解锁它背后的水路秘诀。
+          </p>
+          <div class="mission-card">
+            <div class="mission-row">
+              <div class="mission-icon good">开</div>
+              <div>
+                <strong>开始通水</strong>
+                <span>先不用管背后的原理。把水送稳，过关后再看水路秘诀。</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="intro-footer">
+        <div class="intro-dots" id="introDots" aria-hidden="true"></div>
+        <div class="intro-actions">
+          <button class="secondary" id="introBackBtn">返回</button>
+          <button class="primary" id="introNextBtn">下一幕</button>
+        </div>
+        <button class="skip-link" id="introSkipBtn">跳过开场，直接进入关卡</button>
+      </div>
+    </div>
+  </section>
+
+  <script src="./assets/asset-data.js"></script>
+  <script>
+    const SPRITES = window.PipeNetAssets || {
+      sourceSpring: "./assets/source-spring.png",
+      mixingPool: "./assets/mixing-pool.png",
+      outputTank: "./assets/output-tank.png",
+      biasPump: "./assets/bias-pump.png",
+      qingxiTown: "./assets/qingxi-town-alpha.png"
+    };
+
+    const levels = [
+      {
+        id: "c1-1",
+        chapter: "Chapter 1",
+        title: "接通山泉",
+        concept: "水流会沿管道送到供水池。",
+        lesson: "输水管会把上游水源的流量送到下游。第一关里，山泉流量被原样送进供水池。",
+        objective: "第一座小水闸只接收山泉水。接上输水管，让供水池贴近黄线。",
+        tolerance: 0.04,
+        samples: [{ inputs: [0.72], target: 0.72 }],
+        inputNames: ["山泉"],
+        pipes: [{ id: "w1", label: "山泉输水管", input: 0, type: "supply", strength: 1, installed: false, lockType: true, lockStrength: true }],
+        bias: null
+      },
+      {
+        id: "c1-2",
+        chapter: "Chapter 1",
+        title: "调管道粗细",
+        concept: "管道越粗，影响越大。",
+        lesson: "管道粗细决定这股水对供水池的影响。管越粗，送过去的流量越大。",
+        objective: "山泉水很足，但小镇只需要适量供水。调节管道粗细，让供水池不要溢出。",
+        tolerance: 0.035,
+        samples: [{ inputs: [1.0], target: 0.6 }],
+        inputNames: ["山泉"],
+        pipes: [{ id: "w1", label: "山泉输水管", input: 0, type: "supply", strength: 0.35, installed: true, lockType: true }],
+        bias: null
+      },
+      {
+        id: "c1-3",
+        chapter: "Chapter 1",
+        title: "两个水源合流",
+        concept: "多处水源会在合流池汇合。",
+        lesson: "合流池会把多处水源汇在一起。每根管道都给最终水位贡献一部分。",
+        objective: "现在有两处水源。把山泉和井水接入合流池，让供水池贴近黄线。",
+        tolerance: 0.04,
+        samples: [{ inputs: [0.35, 0.45], target: 0.8 }],
+        pipes: [
+          { id: "w1", label: "山泉输水管", input: 0, type: "supply", strength: 1, installed: true, lockType: true },
+          { id: "w2", label: "井水输水管", input: 1, type: "supply", strength: 0, installed: false, lockType: true }
+        ],
+        inputNames: ["山泉", "井水"],
+        bias: null
+      },
+      {
+        id: "c1-4",
+        chapter: "Chapter 1",
+        title: "抽水管的抑制",
+        concept: "抽水管会压低总水位。",
+        lesson: "抽水管不是让水倒流，而是在合流池里抵消一部分水位，用来压住过高的输出。",
+        objective: "雨水槽来水时，反而要压住总水位。使用输水管和抽水管，让供水池稳定在黄线附近。",
+        tolerance: 0.045,
+        samples: [{ inputs: [0.9, 0.5], target: 0.42 }],
+        pipes: [
+          { id: "w1", label: "山泉管道", input: 0, type: "supply", strength: 0.55, installed: true },
+          { id: "w2", label: "雨水槽管道", input: 1, type: "supply", strength: 0.15, installed: true }
+        ],
+        inputNames: ["山泉", "雨水槽"],
+        bias: null
+      },
+      {
+        id: "c2-1",
+        chapter: "Chapter 1",
+        title: "加一座泵站",
+        concept: "泵站能整体抬高或降低水位。",
+        lesson: "泵站会给整段水路加一点基础水压。它不依赖某一处水源，而是整体抬高或降低供水。",
+        objective: "有时基础水压本来就偏低。加入加压泵站，把整段水路的水位整体抬高或降低。",
+        tolerance: 0.035,
+        samples: [{ inputs: [0.5], target: 0.8 }],
+        inputNames: ["山泉"],
+        pipes: [{ id: "w1", label: "山泉输水管", input: 0, type: "supply", strength: 0.72, installed: true, lockType: true }],
+        bias: { value: 0, min: -0.5, max: 0.7 }
+      },
+      {
+        id: "c2-2",
+        chapter: "Chapter 1",
+        title: "一天里的几种水情",
+        concept: "同一套管道要应对多种水情。",
+        lesson: "同一套管道不能只适合一种水情。它要在不同来水情况下都尽量稳定。",
+        objective: "一天里会出现好几种水情。同一套管道和泵站要尽量照顾所有情况。",
+        tolerance: 0.06,
+        samples: [
+          { inputs: [0], target: 0.2 },
+          { inputs: [0.5], target: 0.6 },
+          { inputs: [1], target: 1.0 }
+        ],
+        inputNames: ["山泉"],
+        pipes: [{ id: "w1", label: "山泉输水管", input: 0, type: "supply", strength: 0.45, installed: true, lockType: true }],
+        bias: { value: 0.05, min: -0.3, max: 0.6 }
+      },
+      {
+        id: "c2-3",
+        chapter: "Chapter 1",
+        title: "全天水路日志",
+        concept: "水路日志会记录全天表现。",
+        lesson: "全天通水看的是多种水情下的整体表现。单次刚好还不够，全天稳定才算好。",
+        objective: "水路日志会记录几种水情的表现。调两根管道和泵站，让小镇全天都稳定。",
+        tolerance: 0.055,
+        samples: [
+          { inputs: [0.2, 0.8], target: 0.10 },
+          { inputs: [0.8, 0.2], target: 0.55 },
+          { inputs: [0.7, 0.7], target: 0.38 }
+        ],
+        pipes: [
+          { id: "w1", label: "山泉管道", input: 0, type: "supply", strength: 0.35, installed: true },
+          { id: "w2", label: "雨水槽管道", input: 1, type: "pump", strength: 0.2, installed: true }
+        ],
+        inputNames: ["山泉", "雨水槽"],
+        bias: { value: 0.15, min: -0.4, max: 0.7 }
+      }
+    ];
+
+    const storageKey = "pipenet-lab-progress-v1";
+    const urlParams = new URLSearchParams(window.location.search);
+    const debugUnlock = urlParams.get("play") === "1" || urlParams.get("debug") === "1" || urlParams.get("unlock") === "1";
+    const PIPE_NUDGE = 0.02;
+    const BIAS_NUDGE = 0.02;
+    const state = {
+      levelIndex: 0,
+      sampleIndex: 0,
+      progress: JSON.parse(localStorage.getItem(storageKey) || "{}"),
+      working: null,
+      selectedTool: null,
+      reportOpen: false,
+      clearOpen: false,
+      summaryOpen: false,
+      lastClearStars: 0
+    };
+
+    const el = {
+      chapterMap: document.getElementById("chapterMap"),
+      gameStage: document.getElementById("gameStage"),
+      mapBtn: document.getElementById("mapBtn"),
+      startChapterOneBtn: document.getElementById("startChapterOneBtn"),
+      chapterOneStatus: document.getElementById("chapterOneStatus"),
+      chapterTwoNode: document.getElementById("chapterTwoNode"),
+      chapterTwoBtn: document.getElementById("chapterTwoBtn"),
+      chapterTwoStatus: document.getElementById("chapterTwoStatus"),
+      mapFooterTitle: document.getElementById("mapFooterTitle"),
+      mapFooterText: document.getElementById("mapFooterText"),
+      levelStrip: document.getElementById("levelStrip"),
+      progressCount: document.getElementById("progressCount"),
+      chapterLabel: document.getElementById("chapterLabel"),
+      levelTitle: document.getElementById("levelTitle"),
+      objective: document.getElementById("objective"),
+      sampleRow: document.getElementById("sampleRow"),
+      board: document.getElementById("board"),
+      controls: document.getElementById("controls"),
+      outputFill: document.getElementById("outputFill"),
+      targetLine: document.getElementById("targetLine"),
+      outputValue: document.getElementById("outputValue"),
+      targetValue: document.getElementById("targetValue"),
+      starsValue: document.getElementById("starsValue"),
+      formulaText: document.getElementById("formulaText"),
+      reportBtn: document.getElementById("reportBtn"),
+      reportPanel: document.getElementById("reportPanel"),
+      resetBtn: document.getElementById("resetBtn"),
+      checkBtn: document.getElementById("checkBtn"),
+      feedback: document.getElementById("feedback"),
+      sheetScrim: document.getElementById("sheetScrim"),
+      pipeSheet: document.getElementById("pipeSheet"),
+      clearModal: document.getElementById("clearModal"),
+      clearStars: document.getElementById("clearStars"),
+      clearMessage: document.getElementById("clearMessage"),
+      clearLesson: document.getElementById("clearLesson"),
+      clearReplayBtn: document.getElementById("clearReplayBtn"),
+      clearNextBtn: document.getElementById("clearNextBtn"),
+      chapterSummary: document.getElementById("chapterSummary"),
+      summaryReplayBtn: document.getElementById("summaryReplayBtn"),
+      summaryMapBtn: document.getElementById("summaryMapBtn"),
+      welcomeScreen: document.getElementById("welcomeScreen"),
+      introScenes: Array.from(document.querySelectorAll(".intro-scene")),
+      introDots: document.getElementById("introDots"),
+      introBackBtn: document.getElementById("introBackBtn"),
+      introNextBtn: document.getElementById("introNextBtn"),
+      introSkipBtn: document.getElementById("introSkipBtn")
+    };
+
+    let introSceneIndex = 0;
+
+    function hideWelcome() {
+      el.welcomeScreen.classList.add("hidden");
+    }
+
+    function passedCount() {
+      return levels.filter(level => state.progress[level.id] > 0).length;
+    }
+
+    function chapterOneComplete() {
+      return levels.every(level => state.progress[level.id] > 0);
+    }
+
+    function nextChapterOneLevel() {
+      const index = levels.findIndex(level => !state.progress[level.id]);
+      return index === -1 ? 0 : index;
+    }
+
+    function renderChapterMap() {
+      const passed = passedCount();
+      const complete = chapterOneComplete();
+      el.progressCount.textContent = `${passed}/${levels.length}`;
+      el.chapterOneStatus.textContent = complete
+        ? "第 1 章已完成：线性水路档案已解锁。"
+        : `已修好 ${passed}/${levels.length} 段水路。继续学习 y = wx + b。`;
+      el.startChapterOneBtn.textContent = complete ? "重玩第 1 章" : (passed > 0 ? "继续第 1 章" : "进入第 1 章");
+      el.chapterTwoNode.classList.toggle("locked", true);
+      el.chapterTwoBtn.disabled = true;
+      el.chapterTwoBtn.textContent = complete ? "下一章设计中" : "通关第 1 章后查看";
+      el.chapterTwoStatus.textContent = complete
+        ? "下一章会从止回阀、限流阀开始，再过渡到 softmax 分流。"
+        : "先修完线性水路，再进入闸门系统。";
+      el.mapFooterTitle.textContent = complete ? "第 1 章完成：水路档案已解锁" : "当前目标：修完第 1 章";
+      el.mapFooterText.textContent = complete
+        ? "你已经学会 y = wx + b。下一步会学习闸门怎样让水路变成非直线规则。"
+        : "通关后会解锁水路档案，把游戏里的水管翻译成 y = wx + b。";
+    }
+
+    function showMap() {
+      state.selectedTool = null;
+      state.clearOpen = false;
+      state.summaryOpen = false;
+      el.chapterMap.hidden = false;
+      el.levelStrip.hidden = true;
+      el.gameStage.hidden = true;
+      renderChapterMap();
+    }
+
+    function showGame(index) {
+      el.chapterMap.hidden = true;
+      el.levelStrip.hidden = false;
+      el.gameStage.hidden = false;
+      loadLevel(index);
+    }
+
+    function renderIntro() {
+      el.introScenes.forEach((scene, index) => {
+        scene.classList.toggle("active", index === introSceneIndex);
+      });
+      el.introDots.innerHTML = el.introScenes.map((_, index) => (
+        `<span class="intro-dot ${index === introSceneIndex ? "active" : ""}"></span>`
+      )).join("");
+      el.introBackBtn.disabled = introSceneIndex === 0;
+      el.introBackBtn.textContent = introSceneIndex === 0 ? "返回" : "上一幕";
+      el.introNextBtn.textContent = introSceneIndex === el.introScenes.length - 1 ? "开始通水" : "下一幕";
+    }
+
+    function goIntroNext() {
+      if (introSceneIndex >= el.introScenes.length - 1) {
+        hideWelcome();
+        return;
+      }
+      introSceneIndex += 1;
+      renderIntro();
+    }
+
+    function goIntroBack() {
+      if (introSceneIndex === 0) return;
+      introSceneIndex -= 1;
+      renderIntro();
+    }
+
+    function cloneLevel(level) {
+      return JSON.parse(JSON.stringify(level));
+    }
+
+    function fmt(value) {
+      const rounded = Math.abs(value) < 0.005 ? 0 : value;
+      return rounded.toFixed(2);
+    }
+
+    function currentLevel() {
+      return state.working;
+    }
+
+    function chapterName(chapter) {
+      return chapter.replace("Chapter 1", "第 1 章").replace("Chapter 2", "第 2 章");
+    }
+
+    function signedStrength(pipe) {
+      return pipe.type === "pump" ? -pipe.strength : pipe.strength;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function selectTool(kind, id) {
+      const level = currentLevel();
+      if (kind === "pipe") {
+        const pipe = level.pipes.find(item => item.id === id);
+        if (pipe && !pipe.installed && pipe.lockType && pipe.lockStrength) {
+          pipe.installed = true;
+          state.selectedTool = null;
+          el.feedback.className = "feedback";
+          el.feedback.textContent = "管道接上了，水已经流向供水池。";
+          render();
+          return;
+        }
+      }
+      state.selectedTool = { kind, id };
+      el.feedback.className = "feedback";
+      if (kind === "bias") {
+        el.feedback.textContent = "正在调泵站。";
+      } else {
+        const pipe = level.pipes.find(item => item.id === id);
+        el.feedback.textContent = pipe && !pipe.installed ? "先接上这根管道，再调水量。" : "管道已接上，可以继续调粗细。";
+      }
+      render();
+    }
+
+    function closeSheet() {
+      state.selectedTool = null;
+      render();
+    }
+
+    function openClearModal(stars) {
+      const level = currentLevel();
+      state.clearOpen = true;
+      state.lastClearStars = stars;
+      state.selectedTool = null;
+      el.clearStars.textContent = `${"★".repeat(stars)}${"☆".repeat(3 - stars)}`;
+      el.clearMessage.textContent = stars >= 3 ? "水路完美打通，供水池稳稳贴住黄线。" : "水路通了，小镇这一段恢复供水。";
+      el.clearLesson.textContent = level.lesson || level.concept;
+      el.clearNextBtn.textContent = state.levelIndex >= levels.length - 1 ? "查看档案" : "下一关";
+      render();
+    }
+
+    function closeClearModal() {
+      state.clearOpen = false;
+      render();
+    }
+
+    function goNextLevel() {
+      if (state.levelIndex < levels.length - 1) {
+        loadLevel(state.levelIndex + 1);
+      } else {
+        state.clearOpen = false;
+        state.summaryOpen = true;
+        render();
+      }
+    }
+
+    function selectedPipe(level) {
+      if (!state.selectedTool || state.selectedTool.kind !== "pipe") return null;
+      return level.pipes.find(pipe => pipe.id === state.selectedTool.id) || null;
+    }
+
+    function setPipeStrength(pipe, value) {
+      pipe.strength = clamp(Math.round(value * 100) / 100, 0, 1.2);
+      pipe.installed = true;
+    }
+
+    function setBiasValue(level, value) {
+      level.bias.value = clamp(Math.round(value * 100) / 100, level.bias.min, level.bias.max);
+    }
+
+    function calcForSample(level, sample) {
+      let z = level.bias ? level.bias.value : 0;
+      const terms = [];
+      level.pipes.forEach(pipe => {
+        if (!pipe.installed) return;
+        const x = sample.inputs[pipe.input] || 0;
+        const term = signedStrength(pipe) * x;
+        z += term;
+        terms.push({ pipe, x, term });
+      });
+      const y = z;
+      return { z, y, loss: Math.abs(y - sample.target), terms };
+    }
+
+    function calcAll(level) {
+      const rows = level.samples.map(sample => calcForSample(level, sample));
+      const meanLoss = rows.reduce((sum, row) => sum + row.loss, 0) / rows.length;
+      return { rows, meanLoss };
+    }
+
+    function starForLoss(level, loss) {
+      if (loss <= level.tolerance * 0.35) return 3;
+      if (loss <= level.tolerance * 0.7) return 2;
+      if (loss <= level.tolerance) return 1;
+      return 0;
+    }
+
+    function waterStatus(row, target) {
+      const diff = row.y - target;
+      const gap = Math.abs(diff);
+      const epsilon = 0.000001;
+      if (gap <= 0.02 + epsilon) return "刚刚好";
+      if (gap <= 0.08 + epsilon) return diff > 0 ? "稍微偏高" : "稍微偏低";
+      if (gap <= 0.25 + epsilon) return diff > 0 ? "水有点多" : "水有点少";
+      return diff > 0 ? "快溢出了" : "水太少了";
+    }
+
+    function flowMood(value) {
+      if (value < 0.2) return "小水流";
+      if (value < 0.55) return "稳定水流";
+      if (value < 0.85) return "充足水流";
+      return "强劲水流";
+    }
+
+    function strengthName(value) {
+      if (value <= 0.02) return "关闭";
+      if (value < 0.35) return "细管";
+      if (value < 0.65) return "中管";
+      if (value < 0.95) return "粗管";
+      return "全开";
+    }
+
+    function flowNumber(value) {
+      return fmt(value);
+    }
+
+    function saveProgress(level, stars) {
+      const old = state.progress[level.id] || 0;
+      if (stars > old) {
+        state.progress[level.id] = stars;
+        localStorage.setItem(storageKey, JSON.stringify(state.progress));
+      }
+    }
+
+    function isLevelUnlocked(index) {
+      if (debugUnlock || index === 0) return true;
+      const previous = levels[index - 1];
+      return Boolean(previous && state.progress[previous.id] > 0);
+    }
+
+    function renderLevelStrip() {
+      el.levelStrip.innerHTML = "";
+      levels.forEach((level, index) => {
+        const unlocked = isLevelUnlocked(index);
+        const button = document.createElement("button");
+        button.className = `level-card${index === state.levelIndex ? " active" : ""}${unlocked ? "" : " locked"}`;
+        button.disabled = !unlocked;
+        button.innerHTML = `
+          <div class="kicker">
+            <span>${chapterName(level.chapter)}</span>
+            <span class="stars">${"★".repeat(state.progress[level.id] || 0)}${"☆".repeat(3 - (state.progress[level.id] || 0))}</span>
+          </div>
+          <div class="name">${index + 1}. ${unlocked ? level.title : "待解锁"}</div>
+        `;
+        if (unlocked) {
+          button.addEventListener("click", () => loadLevel(index));
+        }
+        el.levelStrip.appendChild(button);
+      });
+
+      const passed = Object.values(state.progress).filter(stars => stars > 0).length;
+      el.progressCount.textContent = `${passed}/${levels.length}`;
+    }
+
+    function renderSamples(level) {
+      el.sampleRow.innerHTML = "";
+      if (level.samples.length <= 1) {
+        el.sampleRow.style.display = "none";
+        return;
+      }
+      el.sampleRow.style.display = "flex";
+      level.samples.forEach((sample, index) => {
+        const btn = document.createElement("button");
+        btn.className = `sample-btn${index === state.sampleIndex ? " active" : ""}`;
+        btn.textContent = `水情 ${index + 1}`;
+        btn.addEventListener("click", () => {
+          state.sampleIndex = index;
+          render();
+        });
+        el.sampleRow.appendChild(btn);
+      });
+    }
+
+    function renderControls(level) {
+      el.controls.innerHTML = "";
+      level.pipes.forEach(pipe => {
+        const control = document.createElement("div");
+        control.className = "control";
+
+        const installButton = pipe.lockInstall
+          ? ""
+          : `<button class="install ${pipe.installed ? "on" : ""}" data-action="toggle" data-pipe="${pipe.id}">
+               ${pipe.installed ? "已安装" : "点击安装"}
+             </button>`;
+
+        const typeButtons = pipe.lockType
+          ? ""
+          : `<div class="control-actions">
+               <button class="seg-btn supply ${pipe.type === "supply" ? "active" : ""}" data-action="type" data-type="supply" data-pipe="${pipe.id}">输水管</button>
+               <button class="seg-btn pump ${pipe.type === "pump" ? "active" : ""}" data-action="type" data-type="pump" data-pipe="${pipe.id}">抽水管</button>
+             </div>`;
+
+        const strengthSlider = pipe.lockStrength
+          ? `<div class="control-value">固定强度 ${fmt(pipe.strength)}</div>`
+          : `<input type="range" min="0" max="1.2" step="0.01" value="${pipe.strength}" data-action="strength" data-pipe="${pipe.id}" ${pipe.installed ? "" : "disabled"}>`;
+
+        control.innerHTML = `
+          <div class="control-head">
+            <span>${pipe.label}</span>
+            <span class="control-value">${pipe.type === "pump" ? "-" : "+"}${fmt(pipe.strength)}</span>
+          </div>
+          ${installButton}
+          ${typeButtons}
+          ${strengthSlider}
+        `;
+        el.controls.appendChild(control);
+      });
+
+      if (level.bias) {
+        const control = document.createElement("div");
+        control.className = "control";
+        control.innerHTML = `
+          <div class="control-head">
+            <span>加压泵站</span>
+            <span class="control-value">${fmt(level.bias.value)}</span>
+          </div>
+          <input type="range" min="${level.bias.min}" max="${level.bias.max}" step="0.01" value="${level.bias.value}" data-action="bias">
+        `;
+        el.controls.appendChild(control);
+      }
+
+      el.controls.querySelectorAll("[data-action]").forEach(control => {
+        control.addEventListener("input", handleControl);
+        control.addEventListener("click", handleControl);
+      });
+    }
+
+    function handleControl(event) {
+      const action = event.currentTarget.dataset.action;
+      const level = currentLevel();
+      if (action === "bias") {
+        level.bias.value = Number(event.currentTarget.value);
+      } else {
+        const pipe = level.pipes.find(item => item.id === event.currentTarget.dataset.pipe);
+        if (!pipe) return;
+        if (action === "toggle") pipe.installed = !pipe.installed;
+        if (action === "type") pipe.type = event.currentTarget.dataset.type;
+        if (action === "strength") pipe.strength = Number(event.currentTarget.value);
+      }
+      el.feedback.className = "feedback";
+      el.feedback.textContent = "调节水管，让供水池靠近黄线。";
+      render();
+    }
+
+    function renderPipeSheet(level) {
+      const pipe = selectedPipe(level);
+      const showBias = state.selectedTool && state.selectedTool.kind === "bias" && level.bias;
+      if (!pipe && !showBias) {
+      el.sheetScrim.classList.remove("open");
+      el.pipeSheet.classList.remove("open");
+      el.pipeSheet.innerHTML = "";
+      return;
+      }
+
+      el.sheetScrim.classList.add("open");
+      el.pipeSheet.classList.add("open");
+
+      if (showBias) {
+        const presets = [
+          { label: "降低", value: -0.2 },
+          { label: "关闭", value: 0 },
+          { label: "微升", value: 0.2 },
+          { label: "升高", value: 0.4 },
+          { label: "强升", value: 0.6 }
+        ].filter(item => item.value >= level.bias.min && item.value <= level.bias.max);
+        el.pipeSheet.innerHTML = `
+          <div class="sheet-head">
+            <div>
+              <div class="sheet-title">加压泵站</div>
+              <div class="sheet-value">状态：${level.bias.value > 0.05 ? "加压" : level.bias.value < -0.05 ? "降压" : "待机"}</div>
+            </div>
+            <button class="sheet-close" data-sheet-action="close" onclick="handleSheetAction({ currentTarget: this })" aria-label="关闭">×</button>
+          </div>
+          <div class="sheet-body">
+            <div class="nudge-row">
+              <button class="nudge-btn" data-sheet-action="bias-step" data-step="${-BIAS_NUDGE}" onclick="handleSheetAction({ currentTarget: this })">−</button>
+              <input type="range" min="${level.bias.min}" max="${level.bias.max}" step="0.01" value="${level.bias.value}" data-sheet-action="bias-range" oninput="handleSheetAction({ currentTarget: this })">
+              <button class="nudge-btn" data-sheet-action="bias-step" data-step="${BIAS_NUDGE}" onclick="handleSheetAction({ currentTarget: this })">+</button>
+            </div>
+            <div class="preset-row">
+              ${presets.map(item => `<button class="preset-btn ${Math.abs(level.bias.value - item.value) < 0.005 ? "active" : ""}" data-sheet-action="bias-set" data-value="${item.value}" onclick="handleSheetAction({ currentTarget: this })">${item.label}</button>`).join("")}
+            </div>
+          </div>
+        `;
+      } else {
+        const pipeControlsDisabled = pipe.installed ? "" : "disabled";
+        const presets = [
+          { label: "关闭", value: 0 },
+          { label: "细管", value: 0.25 },
+          { label: "中管", value: 0.5 },
+          { label: "粗管", value: 0.75 },
+          { label: "全开", value: 1 }
+        ];
+        el.pipeSheet.innerHTML = `
+          <div class="sheet-head">
+            <div>
+              <div class="sheet-title">${pipe.label}</div>
+              <div class="sheet-value">${pipeStateName(pipe)} · ${strengthName(pipe.strength)}</div>
+            </div>
+            <button class="sheet-close" data-sheet-action="close" onclick="handleSheetAction({ currentTarget: this })" aria-label="关闭">×</button>
+          </div>
+          <div class="sheet-body">
+            <button class="install-sheet-btn" data-sheet-action="toggle-install" onclick="handleSheetAction({ currentTarget: this })">${pipe.installed ? "拆下管道" : "安装这根管道"}</button>
+            ${pipe.lockType ? "" : `
+              <div class="sheet-types">
+                <button class="seg-btn supply ${pipe.type === "supply" ? "active" : ""}" data-sheet-action="pipe-type" data-type="supply" onclick="handleSheetAction({ currentTarget: this })">输水管</button>
+                <button class="seg-btn pump ${pipe.type === "pump" ? "active" : ""}" data-sheet-action="pipe-type" data-type="pump" onclick="handleSheetAction({ currentTarget: this })">抽水管</button>
+              </div>
+            `}
+            ${pipe.lockStrength ? `<div class="sheet-value">这根管道粗细固定，用来观察水流如何传到供水池。</div>` : `
+              <div class="nudge-row">
+                <button class="nudge-btn" data-sheet-action="pipe-step" data-step="${-PIPE_NUDGE}" onclick="handleSheetAction({ currentTarget: this })" ${pipeControlsDisabled}>−</button>
+                <input type="range" min="0" max="1.2" step="0.01" value="${pipe.strength}" data-sheet-action="pipe-range" oninput="handleSheetAction({ currentTarget: this })" ${pipe.installed ? "" : "disabled"}>
+                <button class="nudge-btn" data-sheet-action="pipe-step" data-step="${PIPE_NUDGE}" onclick="handleSheetAction({ currentTarget: this })" ${pipeControlsDisabled}>+</button>
+              </div>
+              <div class="preset-row">
+                ${presets.map(item => `<button class="preset-btn ${Math.abs(pipe.strength - item.value) < 0.005 ? "active" : ""}" data-sheet-action="pipe-set" data-value="${item.value}" onclick="handleSheetAction({ currentTarget: this })" ${pipeControlsDisabled}>${item.label}</button>`).join("")}
+              </div>
+            `}
+          </div>
+        `;
+      }
+
+    }
+
+    function renderClearModal() {
+      el.clearModal.classList.toggle("open", state.clearOpen);
+    }
+
+    function renderChapterSummary() {
+      el.chapterSummary.classList.toggle("open", state.summaryOpen);
+    }
+
+    function handleSheetAction(event) {
+      const action = event.currentTarget.dataset.sheetAction;
+      const level = currentLevel();
+      const pipe = selectedPipe(level);
+
+      if (action === "close") {
+        closeSheet();
+        return;
+      }
+
+      if (action === "toggle-install" && pipe) {
+        pipe.installed = !pipe.installed;
+      }
+
+      if (action === "pipe-type" && pipe && !pipe.lockType) {
+        pipe.type = event.currentTarget.dataset.type;
+        pipe.installed = true;
+      }
+
+      if (action === "pipe-step" && pipe && pipe.installed && !pipe.lockStrength) {
+        setPipeStrength(pipe, pipe.strength + Number(event.currentTarget.dataset.step));
+      }
+
+      if (action === "pipe-set" && pipe && pipe.installed && !pipe.lockStrength) {
+        setPipeStrength(pipe, Number(event.currentTarget.dataset.value));
+      }
+
+      if (action === "pipe-range" && pipe && pipe.installed && !pipe.lockStrength) {
+        setPipeStrength(pipe, Number(event.currentTarget.value));
+      }
+
+      if (action === "bias-step" && level.bias) {
+        setBiasValue(level, level.bias.value + Number(event.currentTarget.dataset.step));
+      }
+
+      if (action === "bias-set" && level.bias) {
+        setBiasValue(level, Number(event.currentTarget.dataset.value));
+      }
+
+      if (action === "bias-range" && level.bias) {
+        setBiasValue(level, Number(event.currentTarget.value));
+      }
+
+      el.feedback.className = "feedback";
+      el.feedback.textContent = "观察供水池和黄线的距离。";
+      render();
+    }
+
+    function pipePath(inputIndex) {
+      const y = inputIndex === 0 ? 88 : 190;
+      return `M 82 ${y} C 150 ${y}, 160 155, 221 155`;
+    }
+
+    function pipeStateName(pipe) {
+      if (!pipe.installed) return "待接入";
+      return pipe.type === "pump" ? "抽水管" : "输水管";
+    }
+
+    function pipeFlowMarkup(path, pipe, width, flowAmount) {
+      if (!pipe.installed || pipe.strength <= 0.02 || Math.abs(flowAmount) <= 0.01) return "";
+      const isPump = pipe.type === "pump";
+      const baseColor = isPump ? "rgba(255, 196, 128, .7)" : "rgba(133, 231, 255, .68)";
+      const dashColor = isPump ? "#ffd08a" : "#b8f3ff";
+      const flowWidth = Math.max(4, width * .42);
+      return `
+        <path class="pipe-water-base" d="${path}" stroke="${baseColor}" stroke-width="${flowWidth + 1}"></path>
+        <path class="pipe-core-flow ${isPump ? "pump-flow" : ""}" d="${path}" stroke="${dashColor}" stroke-width="${flowWidth}" stroke-dasharray="${isPump ? "7 8" : "10 7"}"></path>
+      `;
+    }
+
+    function renderBoard(level, row) {
+      const sample = level.samples[state.sampleIndex] || level.samples[0];
+      const pipeMarkup = level.pipes.map(pipe => {
+        const x = sample.inputs[pipe.input] || 0;
+        const color = pipe.type === "pump" ? "var(--pump)" : "var(--supply)";
+        const width = pipe.installed ? 7 + pipe.strength * 11 : 6;
+        const selected = state.selectedTool && state.selectedTool.kind === "pipe" && state.selectedTool.id === pipe.id;
+        const path = pipePath(pipe.input);
+        const flow = pipeFlowMarkup(path, pipe, width, x * pipe.strength);
+        const body = pipe.installed
+          ? `<path class="pipe-bg" d="${path}" stroke-width="${width + 5}"></path>
+             <path class="pipe" d="${path}" stroke="${color}" stroke-width="${width}"></path>`
+          : `<path class="pipe-placeholder" d="${path}" stroke-width="9"></path>`;
+        return `
+          ${selected ? `<path class="pipe-select-ring" d="${path}"></path>` : ""}
+          ${body}
+          ${flow}
+          <path class="pipe-hit" d="${path}" data-tool="pipe" data-pipe="${pipe.id}"></path>
+          <text x="142" y="${pipe.input === 0 ? 76 : 214}" class="node-small">${pipe.installed ? `${pipeStateName(pipe)} · ${strengthName(pipe.strength)}` : pipeStateName(pipe)}</text>
+        `;
+      }).join("");
+
+      const inputNodes = sample.inputs.map((value, index) => {
+        const y = index === 0 ? 88 : 190;
+        const name = (level.inputNames && level.inputNames[index]) || `水源 ${index + 1}`;
+        return `
+          <g class="sprite-bob">
+            <image href="${SPRITES.sourceSpring}" xlink:href="${SPRITES.sourceSpring}" x="14" y="${y - 44}" width="80" height="80" preserveAspectRatio="xMidYMid meet"></image>
+            <circle class="water-spark" cx="42" cy="${y - 38}" r="3"></circle>
+            <circle class="water-spark delay" cx="64" cy="${y - 44}" r="2.5"></circle>
+          </g>
+          <text x="53" y="${y + 40}" text-anchor="middle" class="node-label">${name}</text>
+          <text x="53" y="${y + 55}" text-anchor="middle" class="node-small">流量 ${flowNumber(value)}</text>
+        `;
+      }).join("");
+
+      const bias = level.bias
+        ? `${state.selectedTool && state.selectedTool.kind === "bias" ? `<path class="pipe-select-ring" d="M 221 48 C 244 78, 244 114, 244 132"></path>` : ""}
+           <path class="pipe-bg" d="M 221 48 C 244 78, 244 114, 244 132" stroke-width="12"></path>
+           <path class="pipe" d="M 221 48 C 244 78, 244 114, 244 132" stroke="#8b5cf6" stroke-width="${7 + Math.abs(level.bias.value) * 8}"></path>
+           <path class="pipe-hit" d="M 221 48 C 244 78, 244 114, 244 132" data-tool="bias"></path>
+           <image class="sprite-bob slow" href="${SPRITES.biasPump}" xlink:href="${SPRITES.biasPump}" x="182" y="10" width="58" height="58" preserveAspectRatio="xMidYMid meet"></image>
+           <text x="210" y="76" text-anchor="middle" class="node-small">泵站</text>`
+        : "";
+
+      const poolMood = row.z <= 0.05 ? "还没进水" : row.z < 0.45 ? "水量偏少" : row.z < 0.85 ? "水量稳定" : "水量很足";
+      el.board.innerHTML = `
+        ${inputNodes}
+        ${pipeMarkup}
+        ${bias}
+        <g class="sprite-pop">
+          <image href="${SPRITES.mixingPool}" xlink:href="${SPRITES.mixingPool}" x="199" y="111" width="98" height="86" preserveAspectRatio="xMidYMid meet"></image>
+          <path class="pool-shine" d="M 230 145 C 240 139, 256 139, 267 145"></path>
+          <ellipse class="pool-swirl" cx="248" cy="151" rx="23" ry="10"></ellipse>
+        </g>
+        <text x="248" y="205" text-anchor="middle" class="node-label">合流池</text>
+        <text x="248" y="220" text-anchor="middle" class="node-small">${poolMood}</text>
+        <path class="pipe-bg" d="M 284 155 C 313 155, 318 155, 344 155" stroke-width="15"></path>
+        <path class="pipe" d="M 284 155 C 313 155, 318 155, 344 155" stroke="var(--water)" stroke-width="10"></path>
+        <image class="sprite-pop" href="${SPRITES.outputTank}" xlink:href="${SPRITES.outputTank}" x="319" y="99" width="64" height="104" preserveAspectRatio="xMidYMid meet"></image>
+        <line x1="333" x2="373" y1="${197 - Math.max(0, Math.min(1.15, sample.target)) * 74}" y2="${197 - Math.max(0, Math.min(1.15, sample.target)) * 74}" stroke="var(--target)" stroke-width="3" stroke-dasharray="5 5"></line>
+        <path class="pipe-bg" d="M 374 154 C 388 148, 386 117, 364 97" stroke-width="12"></path>
+        <path class="pipe" d="M 374 154 C 388 148, 386 117, 364 97" stroke="var(--water)" stroke-width="7"></path>
+        ${row.y > 0.02 ? `<path class="pipe-water-base" d="M 374 154 C 388 148, 386 117, 364 97" stroke="rgba(133, 231, 255, .68)" stroke-width="5"></path><path class="pipe-core-flow" d="M 374 154 C 388 148, 386 117, 364 97" stroke="#b8f3ff" stroke-width="4" stroke-dasharray="9 7" fill="none"></path>` : ""}
+        <image class="sprite-bob slow" href="${SPRITES.qingxiTown}" xlink:href="${SPRITES.qingxiTown}" x="320" y="43" width="72" height="55" preserveAspectRatio="xMidYMid meet"></image>
+        <text x="356" y="107" text-anchor="middle" class="node-small">青溪镇</text>
+        <text x="352" y="221" text-anchor="middle" class="node-label">供水池</text>
+        <text x="352" y="236" text-anchor="middle" class="node-small">${waterStatus(row, sample.target)}</text>
+      `;
+      el.board.querySelectorAll("[data-tool='pipe']").forEach(hit => {
+        hit.addEventListener("click", () => selectTool("pipe", hit.dataset.pipe));
+      });
+      el.board.querySelectorAll("[data-tool='bias']").forEach(hit => {
+        hit.addEventListener("click", () => selectTool("bias", "bias"));
+      });
+    }
+
+    function renderMeters(level, row, all) {
+      const sample = level.samples[state.sampleIndex] || level.samples[0];
+      const displayOutput = Math.max(0, Math.min(1.15, row.y));
+      const displayTarget = Math.max(0, Math.min(1.15, sample.target));
+      el.outputFill.style.height = `${(displayOutput / 1.15) * 100}%`;
+      el.targetLine.style.bottom = `${(displayTarget / 1.15) * 100}%`;
+      el.outputValue.textContent = `当前流量 ${flowNumber(row.y)}`;
+      el.targetValue.textContent = `目标流量 ${flowNumber(sample.target)}`;
+      const stars = starForLoss(level, all.meanLoss);
+      el.starsValue.textContent = stars > 0 ? `${"★".repeat(stars)}${"☆".repeat(3 - stars)} · ${waterStatus(row, sample.target)}` : waterStatus(row, sample.target);
+    }
+
+    function renderFormula(level, row, all) {
+      const sample = level.samples[state.sampleIndex] || level.samples[0];
+      const terms = level.pipes
+        .filter(pipe => pipe.installed)
+        .map(pipe => {
+          const sign = pipe.type === "pump" ? "-" : "+";
+          return `${sign} ${fmt(pipe.strength)}x${pipe.input + 1}`;
+        });
+      if (level.bias) {
+        terms.push(`${level.bias.value >= 0 ? "+" : "-"} ${fmt(Math.abs(level.bias.value))}`);
+      }
+      const expression = terms.length ? terms.join(" ") : "0";
+      const inputText = sample.inputs.map((value, index) => `${(level.inputNames && level.inputNames[index]) || `水源 ${index + 1}`}：流量 ${flowNumber(value)}`).join("，");
+      el.reportPanel.classList.toggle("open", state.reportOpen);
+      el.reportBtn.innerHTML = state.reportOpen ? "收起<br>日志" : "水路<br>日志";
+      el.formulaText.textContent = `水源：${inputText}。现在状态：${waterStatus(row, sample.target)}。提示：如果水太少，就加粗输水管；如果快溢出，就变细或改用抽水管。`;
+    }
+
+    function render() {
+      const level = currentLevel();
+      const all = calcAll(level);
+      const row = all.rows[state.sampleIndex] || all.rows[0];
+      el.chapterLabel.textContent = `${chapterName(level.chapter)} · ${level.concept}`;
+      el.levelTitle.textContent = level.title;
+      el.objective.textContent = level.objective;
+      renderLevelStrip();
+      renderSamples(level);
+      renderBoard(level, row);
+      renderMeters(level, row, all);
+      renderControls(level);
+      renderFormula(level, row, all);
+      renderPipeSheet(level);
+      renderClearModal();
+      renderChapterSummary();
+    }
+
+    function loadLevel(index) {
+      state.levelIndex = index;
+      state.sampleIndex = 0;
+      state.working = cloneLevel(levels[index]);
+      state.selectedTool = null;
+      state.reportOpen = false;
+      state.clearOpen = false;
+      state.summaryOpen = false;
+      el.feedback.className = "feedback";
+      el.feedback.textContent = "点管道或泵站开始通水。";
+      render();
+      requestAnimationFrame(() => {
+        const card = el.levelStrip.children[index];
+        if (card) card.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+      });
+    }
+
+    function resetLevel() {
+      loadLevel(state.levelIndex);
+    }
+
+    function checkLevel() {
+      const level = currentLevel();
+      const all = calcAll(level);
+      const stars = starForLoss(level, all.meanLoss);
+      if (stars > 0) {
+        saveProgress(level, stars);
+        el.feedback.className = "feedback good";
+        el.feedback.textContent = "水路打通！";
+        renderLevelStrip();
+        openClearModal(stars);
+      } else if (all.meanLoss <= level.tolerance * 1.8) {
+        el.feedback.className = "feedback close";
+        el.feedback.textContent = "很接近了，供水池还差一点点就能贴住黄线。";
+      } else {
+        el.feedback.className = "feedback";
+        el.feedback.textContent = "还没稳住。看目标虚线：水位偏低就加水，偏高就减水或抽水。";
+      }
+    }
+
+    el.resetBtn.addEventListener("click", resetLevel);
+    el.checkBtn.addEventListener("click", checkLevel);
+    el.reportBtn.addEventListener("click", () => {
+      state.reportOpen = !state.reportOpen;
+      render();
+    });
+    el.sheetScrim.addEventListener("click", closeSheet);
+    el.clearReplayBtn.addEventListener("click", resetLevel);
+    el.clearNextBtn.addEventListener("click", goNextLevel);
+    el.mapBtn.addEventListener("click", showMap);
+    el.startChapterOneBtn.addEventListener("click", () => showGame(nextChapterOneLevel()));
+    el.summaryReplayBtn.addEventListener("click", () => showGame(0));
+    el.summaryMapBtn.addEventListener("click", showMap);
+    el.introNextBtn.addEventListener("click", goIntroNext);
+    el.introBackBtn.addEventListener("click", goIntroBack);
+    el.introSkipBtn.addEventListener("click", hideWelcome);
+    renderIntro();
+    loadLevel(0);
+    if (urlParams.get("map") === "1") {
+      hideWelcome();
+      showMap();
+    } else if (urlParams.get("play") === "1") {
+      hideWelcome();
+      showGame(0);
+    } else {
+      showMap();
+    }
+  </script>
+</body>
+</html>
