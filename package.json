@@ -1,0 +1,28 @@
+{
+  "name": "game-neuralnetworkpipe",
+  "version": "1.0.0",
+  "description": "一个面向高中生和本科低年级学生的 HTML5 + Phaser puzzle lab 原型：用修水管的方式学习神经网络的基础概念。",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --host 127.0.0.1 --port 4173"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yuanxy92/PlayGameToLearnAI.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/yuanxy92/PlayGameToLearnAI/issues"
+  },
+  "homepage": "https://github.com/yuanxy92/PlayGameToLearnAI#readme",
+  "dependencies": {
+    "phaser": "^3.90.0",
+    "phaser3-rex-plugins": "^1.80.20",
+    "vite": "^8.0.16"
+  }
+}
