@@ -485,7 +485,7 @@
       position: relative;
       align-self: center;
       justify-self: center;
-      width: min(100%, calc((100dvh - 126px) * .563));
+      width: min(calc(100vw - 20px), calc((100dvh - 145px) * .563), 520px);
       max-width: 520px;
       max-height: 100%;
       aspect-ratio: 941 / 1672;
@@ -505,7 +505,12 @@
       object-fit: cover;
     }
 
+    body[data-map-chapter="2"] .map-art {
+      filter: hue-rotate(38deg) saturate(.92) brightness(1.02);
+    }
+
     .map-title {
+      display: none;
       position: absolute;
       left: 5%;
       top: 4%;
@@ -597,15 +602,16 @@
       outline: 4px solid rgba(255, 207, 74, .46);
     }
 
-    .map-level.l1 { left: 20%; top: 82%; }
-    .map-level.l2 { left: 42%; top: 76%; }
-    .map-level.l3 { left: 64%; top: 67%; }
-    .map-level.l4 { left: 76%; top: 55%; }
-    .map-level.l5 { left: 57%; top: 45%; }
-    .map-level.l6 { left: 36%; top: 35%; }
-    .map-level.l7 { left: 43%; top: 24%; }
+    .map-level.l1 { left: 37%; top: 89%; }
+    .map-level.l2 { left: 52%; top: 76%; }
+    .map-level.l3 { left: 68%; top: 67%; }
+    .map-level.l4 { left: 77%; top: 55%; }
+    .map-level.l5 { left: 53%; top: 46%; }
+    .map-level.l6 { left: 44%; top: 35%; }
+    .map-level.l7 { left: 51%; top: 24%; }
 
     .chapter-gate {
+      display: none !important;
       position: absolute;
       right: 5%;
       top: 12%;
@@ -616,7 +622,6 @@
       border-radius: 13px;
       background: rgba(255, 255, 255, .86);
       box-shadow: 0 10px 20px rgba(38, 48, 71, .14);
-      display: grid;
       gap: 5px;
     }
 
@@ -643,8 +648,8 @@
 
     .map-footer {
       display: grid;
-      gap: 4px;
-      padding: 9px 12px;
+      gap: 8px;
+      padding: 10px 12px;
       border: 1px solid rgba(201, 215, 234, .9);
       border-radius: 14px;
       background: rgba(255, 253, 248, .92);
@@ -652,6 +657,42 @@
       font-size: 12px;
       line-height: 1.35;
       box-shadow: 0 8px 18px rgba(38, 48, 71, .08);
+    }
+
+    .chapter-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+
+    .chapter-switch button {
+      min-width: 0;
+      min-height: 34px;
+      border: 1px solid #c2d2e8;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #526178;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 860;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chapter-switch button.active {
+      border-color: #2d78c6;
+      background: linear-gradient(180deg, #4fb4ff, #2e76d2);
+      color: #ffffff;
+      box-shadow: inset 0 -3px 0 rgba(23, 73, 132, .25);
+    }
+
+    body[data-map-chapter="2"] .map-level {
+      background: linear-gradient(180deg, #8b7cf6, #4f46e5);
+    }
+
+    body[data-map-chapter="2"] .map-level strong {
+      color: #4f46e5;
     }
 
     .level-strip {
@@ -1780,6 +1821,10 @@
         </div>
       </div>
       <div class="map-footer">
+        <div class="chapter-switch">
+          <button class="active" data-map-chapter="1">第 1 章</button>
+          <button data-map-chapter="2">第 2 章</button>
+        </div>
         <strong id="mapFooterTitle">当前目标：修完第 1 章</strong>
         <span id="mapFooterText">通关后会解锁水路档案，把游戏里的水管翻译成 y = wx + b。</span>
       </div>
@@ -2181,6 +2226,7 @@
       reportOpen: false,
       clearOpen: false,
       summaryOpen: false,
+      mapChapter: 1,
       lastClearStars: 0
     };
 
@@ -2189,6 +2235,7 @@
       gameStage: document.getElementById("gameStage"),
       mapBtn: document.getElementById("mapBtn"),
       mapLevelButtons: Array.from(document.querySelectorAll("[data-map-level]")),
+      mapChapterButtons: Array.from(document.querySelectorAll("[data-map-chapter]")),
       chapterOneStatus: document.getElementById("chapterOneStatus"),
       chapterTwoNode: document.getElementById("chapterTwoNode"),
       chapterTwoBtn: document.getElementById("chapterTwoBtn"),
@@ -2252,22 +2299,48 @@
       return index === -1 ? 0 : index;
     }
 
+    const chapterTwoPreview = [
+      "止回阀",
+      "限流阀",
+      "软闸门",
+      "S 形水门",
+      "分流池"
+    ];
+
     function renderChapterMap() {
       const passed = passedCount();
       const complete = chapterOneComplete();
+      const showingChapterTwo = state.mapChapter === 2;
+      document.body.dataset.mapChapter = String(state.mapChapter);
       el.progressCount.textContent = `${passed}/${levels.length}`;
-      el.chapterOneStatus.textContent = complete
-        ? "第 1 章完成：线性水路档案已解锁。"
-        : `已修好 ${passed}/${levels.length} 段水路。继续学习 y = wx + b。`;
+      el.chapterOneStatus.textContent = showingChapterTwo
+        ? "第 2 章会学习闸门怎样改变水流。"
+        : (complete ? "第 1 章完成：线性水路档案已解锁。" : `已修好 ${passed}/${levels.length} 段水路。继续学习 y = wx + b。`);
+      el.mapChapterButtons.forEach(button => {
+        button.classList.toggle("active", Number(button.dataset.mapChapter) === state.mapChapter);
+      });
       el.mapLevelButtons.forEach(button => {
         const index = Number(button.dataset.mapLevel);
         const level = levels[index];
+        if (showingChapterTwo) {
+          const label = chapterTwoPreview[index];
+          button.hidden = !label;
+          button.disabled = true;
+          button.classList.add("locked");
+          button.classList.remove("done", "active");
+          button.querySelector("strong").textContent = String(index + 1);
+          button.querySelector("span").textContent = label || "";
+          return;
+        }
+        button.hidden = false;
         const unlocked = isLevelUnlocked(index);
         const done = Boolean(level && state.progress[level.id] > 0);
         button.disabled = !unlocked;
         button.classList.toggle("locked", !unlocked);
         button.classList.toggle("done", done);
         button.classList.toggle("active", index === nextChapterOneLevel() && !complete);
+        button.querySelector("strong").textContent = String(index + 1);
+        button.querySelector("span").textContent = level.title;
       });
       el.chapterTwoNode.classList.toggle("locked", true);
       el.chapterTwoBtn.disabled = true;
@@ -2275,10 +2348,15 @@
       el.chapterTwoStatus.textContent = complete
         ? "下一章会从止回阀、限流阀开始，再过渡到 softmax 分流。"
         : "先修完线性水路，再进入闸门系统。";
-      el.mapFooterTitle.textContent = complete ? "第 1 章完成：水路档案已解锁" : "当前目标：修完第 1 章";
-      el.mapFooterText.textContent = complete
-        ? "你已经学会 y = wx + b。下一步会学习闸门怎样让水路变成非直线规则。"
-        : "沿路逐关修复水闸。通关后会解锁水路档案，把水管翻译成 y = wx + b。";
+      if (showingChapterTwo) {
+        el.mapFooterTitle.textContent = "第 2 章设计稿：激活函数";
+        el.mapFooterText.textContent = "下一章会把闸门做成关卡：止回阀对应 ReLU，限流和软闸门帮助理解非直线变化，最后再过渡到 softmax 分流。";
+      } else {
+        el.mapFooterTitle.textContent = complete ? "第 1 章完成：水路档案已解锁" : "当前目标：修完第 1 章";
+        el.mapFooterText.textContent = complete
+          ? "你已经学会 y = wx + b。下一步会学习闸门怎样让水路变成非直线规则。"
+          : "沿路逐关修复水闸。通关后会解锁水路档案，把水管翻译成 y = wx + b。";
+      }
     }
 
     function showMap() {
@@ -2942,9 +3020,16 @@
     el.mapBtn.addEventListener("click", showMap);
     el.mapLevelButtons.forEach(button => {
       button.addEventListener("click", () => {
+        if (state.mapChapter !== 1) return;
         const index = Number(button.dataset.mapLevel);
         if (!isLevelUnlocked(index)) return;
         showGame(index);
+      });
+    });
+    el.mapChapterButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        state.mapChapter = Number(button.dataset.mapChapter);
+        renderChapterMap();
       });
     });
     el.summaryReplayBtn.addEventListener("click", () => showGame(0));
@@ -2954,7 +3039,11 @@
     el.introSkipBtn.addEventListener("click", hideWelcome);
     renderIntro();
     loadLevel(0);
-    if (urlParams.get("map") === "1") {
+    if (urlParams.get("map") === "2") {
+      state.mapChapter = 2;
+      hideWelcome();
+      showMap();
+    } else if (urlParams.get("map") === "1") {
       hideWelcome();
       showMap();
     } else if (urlParams.get("play") === "1") {
