@@ -491,27 +491,14 @@
 
         renderChapterOneMap() {
           const pathPoints = [
-            { x: 76, y: 740 },
-            { x: 166, y: 654 },
-            { x: 250, y: 575 },
-            { x: 305, y: 482 },
-            { x: 220, y: 402 },
-            { x: 150, y: 312 },
-            { x: 204, y: 252 }
+            { x: 116, y: 708 },
+            { x: 181, y: 628 },
+            { x: 270, y: 552 },
+            { x: 184, y: 480 },
+            { x: 184, y: 408 },
+            { x: 235, y: 316 },
+            { x: 197, y: 244 }
           ];
-          const g = this.add.graphics();
-          g.lineStyle(30, 0xf4d7a2, .86);
-          g.beginPath();
-          g.moveTo(pathPoints[0].x, pathPoints[0].y);
-          for (let i = 1; i < pathPoints.length; i += 1) {
-            const a = pathPoints[i - 1];
-            const b = pathPoints[i];
-            g.lineTo((a.x + b.x) / 2, (a.y + b.y) / 2);
-            g.lineTo(b.x, b.y);
-          }
-          g.strokePath();
-          g.lineStyle(8, 0xfff2c8, .9);
-          g.strokePath();
 
           roundedRect(this, 24, 118, 266, 92, 18, 0xffffff, .78, 0xffffff, 0);
           addText(this, 44, 146, "青溪镇地图", 31, colors.ink, { weight: "900" });
@@ -656,11 +643,12 @@
           const playHeight = height - 116;
           const image = this.add.image(W / 2, playTop + playHeight / 2, "boardBg");
           image.setDisplaySize(370, playHeight);
-          image.setAlpha(.9);
+          image.setAlpha(.74);
           const maskShape = this.make.graphics({ x: 0, y: 0, add: false });
           maskShape.fillStyle(0xffffff);
           maskShape.fillRoundedRect(10, playTop, 370, playHeight, 18);
           image.setMask(maskShape.createGeometryMask());
+          roundedRect(this, 10, playTop, 370, playHeight, 18, 0xfff4dc, .16);
 
           addText(this, 24, top + 16, `第 ${this.levelIndex + 1} 关`, 15, colors.blueDark, { weight: "900" });
           addText(this, 24, top + 38, this.level.title, 25, colors.ink, { weight: "900" });
