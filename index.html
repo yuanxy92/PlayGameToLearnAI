@@ -507,24 +507,20 @@
           pathPoints.forEach((point, index) => {
             const unlocked = isLevelUnlocked(index);
             const done = Boolean(GAME_STATE.progress[levels[index].id]);
-            const ring = this.add.circle(point.x, point.y, 32, done ? colors.gold : 0xffffff, 1);
-            ring.setStrokeStyle(6, done ? colors.goldDark : unlocked ? colors.gold : 0x9aa8bd);
-            const inner = this.add.circle(point.x, point.y, 22, unlocked ? 0xffffff : 0xe7edf5, 1);
-            inner.setStrokeStyle(2, 0xffffff, .9);
-            const label = addText(this, point.x, point.y + 1, String(index + 1), 24, unlocked ? colors.blueDark : colors.muted, { weight: "900", originX: .5, originY: .5 });
-            const hit = this.add.circle(point.x, point.y, 40, 0xffffff, .001);
+            const color = done ? colors.goldDark : unlocked ? colors.blueDark : 0x7b8798;
+            const glow = this.add.circle(point.x, point.y + 4, 24, 0xffffff, .5);
+            const label = addText(this, point.x, point.y, String(index + 1), 31, color, { weight: "900", originX: .5, originY: .5, stroke: 0xffffff, strokeThickness: 8 });
+            if (done) {
+              addText(this, point.x + 19, point.y - 19, "✓", 15, colors.goldDark, { weight: "900", originX: .5, originY: .5, stroke: 0xffffff, strokeThickness: 5 });
+            }
+            const hit = this.add.circle(point.x, point.y, 34, 0xffffff, .001);
             hit.setInteractive({ useHandCursor: unlocked });
             hit.on("pointerdown", () => {
               if (!unlocked) return;
               GAME_STATE.levelIndex = index;
               this.scene.start("Level", { levelIndex: index });
             });
-            if (!unlocked) {
-              addText(this, point.x, point.y + 39, "未开", 12, 0xffffff, { weight: "900", originX: .5, stroke: colors.ink, strokeThickness: 4 });
-            } else if (done) {
-              addText(this, point.x, point.y + 39, "已通水", 12, 0xffffff, { weight: "900", originX: .5, stroke: colors.ink, strokeThickness: 4 });
-            }
-            this.tweens.add({ targets: [ring, inner, label], y: "-=3", duration: 1100 + index * 70, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+            this.tweens.add({ targets: [glow, label], y: "-=2", duration: 1200 + index * 70, yoyo: true, repeat: -1, ease: "Sine.inOut" });
           });
 
           makeButton(this, 24, 784, 156, 44, "第 1 章 已解锁", () => {}, {
@@ -688,8 +684,10 @@
           const poolY = baseY + 88;
           this.drawPipes(inputYs, poolX, poolY);
           const pool = this.add.image(poolX, poolY, "mixingPool").setDisplaySize(104, 92);
-          this.tweens.add({ targets: pool, angle: 2, duration: 820, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-          this.add.circle(poolX, poolY - 6, 22, colors.water, clamp(this.row.z, 0.12, .72));
+          const rippleAlpha = clamp(Math.abs(this.row.z), .12, .65);
+          const ripple1 = this.add.ellipse(poolX, poolY - 10, 44, 18).setStrokeStyle(3, colors.waterLight, rippleAlpha);
+          const ripple2 = this.add.ellipse(poolX, poolY - 10, 26, 9).setStrokeStyle(2, 0xffffff, rippleAlpha);
+          this.tweens.add({ targets: [ripple1, ripple2], scaleX: 1.16, scaleY: 1.12, alpha: .35, duration: 950, yoyo: true, repeat: -1, ease: "Sine.inOut" });
           addText(this, poolX, poolY + 62, "合流池", 23, 0xffffff, { weight: "900", originX: .5, stroke: colors.ink, strokeThickness: 5 });
           addText(this, poolX, poolY + 90, this.row.z <= .04 ? "还没进水" : this.row.z < .5 ? "水量偏少" : this.row.z < .9 ? "水量稳定" : "水量很足", 16, 0xffffff, { weight: "900", originX: .5, stroke: colors.muted, strokeThickness: 4 });
 
@@ -724,25 +722,27 @@
           this.level.pipes.forEach(pipe => {
             const y = inputYs[pipe.input];
             const path = new Phaser.Curves.Path(98, y);
-            const bendY = pipe.input === 0 ? poolY - 70 : poolY + 52;
-            path.cubicBezierTo(140, y, 154, bendY, poolX - 48, poolY);
+            const bendY = pipe.input === 0 ? poolY - 58 : poolY + 46;
+            path.cubicBezierTo(142, y - 6, 158, bendY, poolX - 50, poolY);
             this.pipePaths.set(pipe.id, path);
-            const width = pipe.installed ? 11 + pipe.strength * 11 : 10;
+            const width = pipe.installed ? 10 + pipe.strength * 8 : 9;
             if (this.selected && this.selected.kind === "pipe" && this.selected.id === pipe.id) {
-              drawPath(g, path, width + 17, 0xffffff, .9);
-              drawPath(g, path, width + 12, colors.gold, .92);
+              drawPath(g, path, width + 16, 0xffffff, .94);
+              drawPath(g, path, width + 10, colors.gold, .86);
             }
-            drawPath(g, path, width + 8, colors.pipeRim, 1);
-            drawPath(g, path, width, pipe.installed ? (pipe.type === "pump" ? colors.pump : colors.supply) : colors.pipeInner, pipe.installed ? 1 : .75);
+            drawPath(g, path, width + 8, 0xb48144, .92);
+            drawPath(g, path, width + 3, colors.pipeRim, 1);
+            drawPath(g, path, Math.max(4, width - 3), pipe.installed ? 0xe6f7ff : 0xf1d6ad, pipe.installed ? .95 : .55);
             if (pipe.installed && pipe.strength > .02 && Math.abs((this.sample.inputs[pipe.input] || 0) * pipe.strength) > .01) {
-              makeFlow(this, path, pipe.type === "pump" ? 0xfff0a6 : colors.waterLight, pipe.type === "pump", 5, .18 + pipe.strength * .07);
+              makeFlow(this, path, pipe.type === "pump" ? 0xff8d5b : colors.water, pipe.type === "pump", 6, .22 + pipe.strength * .08);
             }
             const mid = path.getPoint(.46);
             const hit = this.add.zone(mid.x, mid.y, 120, 74);
             hit.setInteractive({ useHandCursor: true });
             hit.on("pointerdown", () => this.selectPipe(pipe.id));
             const label = pipe.installed ? `${pipe.type === "pump" ? "抽水管" : "输水管"} · ${strengthName(pipe.strength)}` : "点这里安装";
-            addText(this, mid.x, mid.y - 40, label, 13, 0xffffff, { weight: "900", originX: .5, stroke: colors.ink, strokeThickness: 4 });
+            roundedRect(this, mid.x - 45, mid.y - 48, 90, 22, 10, 0xffffff, .78, 0xffffff, 0);
+            addText(this, mid.x, mid.y - 43, label, 12, pipe.type === "pump" ? colors.pump : colors.blueDark, { weight: "900", originX: .5 });
           });
 
           if (this.level.bias) {
@@ -769,6 +769,16 @@
             });
             addText(this, poolX - 48, poolY - 47, "泵站", 13, 0xffffff, { weight: "900", originX: .5, stroke: colors.ink, strokeThickness: 4 });
           }
+        }
+
+        drawCompactMeter(x, y, w) {
+          addText(this, x, y - 16, `当前 ${fmt(this.row.y)}`, 12, colors.ink, { weight: "900" });
+          addText(this, x + w, y - 16, `目标 ${fmt(this.sample.target)}`, 12, colors.ink, { weight: "900", originX: 1 });
+          roundedRect(this, x, y, w, 24, 12, 0xffffff, 1, colors.muted, 3);
+          const fillW = clamp(this.row.y, 0, 1.15) / 1.15 * (w - 6);
+          roundedRect(this, x + 3, y + 3, Math.max(6, fillW), 18, 9, colors.water, .96);
+          const markerX = x + 3 + clamp(this.sample.target, 0, 1.15) / 1.15 * (w - 6);
+          this.add.line(0, 0, markerX, y - 2, markerX, y + 27, colors.gold, 1).setLineWidth(3);
         }
 
         drawHud() {
@@ -829,6 +839,7 @@
           const value = isBias ? fmt(this.level.bias.value) : `${pipe.type === "pump" ? "抽水管" : "输水管"} · ${strengthName(pipe.strength)}`;
           addText(this, 24, top + 16, title, 21, colors.ink, { weight: "900" });
           addText(this, 24, top + 45, value, 15, colors.muted, { weight: "900" });
+          this.drawCompactMeter(176, top + 45, 112);
           makeButton(this, 314, top + 14, 42, 38, "×", () => {
             this.selected = null;
             this.render();
