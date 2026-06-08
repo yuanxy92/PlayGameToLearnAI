@@ -41,11 +41,24 @@
       padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
     }
 
-    #game {
+    .stage-frame {
+      position: relative;
       width: min(100vw, calc(100dvh * 390 / 844));
       height: min(100dvh, calc(100vw * 844 / 390));
       max-width: 520px;
       max-height: 100dvh;
+    }
+
+    #game,
+    #hud-layer {
+      position: absolute;
+      inset: 0;
+    }
+
+    #hud-layer {
+      pointer-events: none;
+      z-index: 5;
+      font-family: "Trebuchet MS", "Avenir Next", "Segoe UI", sans-serif;
     }
 
     canvas {
@@ -66,12 +79,333 @@
       line-height: 1.65;
       color: #24304a;
     }
+
+    .hud-panel {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+      border-radius: 18px;
+      border: 2px solid #bfd3ec;
+      background: rgba(255, 251, 239, .98);
+      box-shadow: 0 12px 28px rgba(56, 80, 117, .14);
+      padding: 14px 14px 12px;
+      pointer-events: auto;
+    }
+
+    .hud-panel[hidden],
+    .report-sheet[hidden] {
+      display: none !important;
+    }
+
+    .hud-topline,
+    .tool-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .hud-title,
+    .tool-title {
+      margin: 0;
+      font-size: 17px;
+      font-weight: 900;
+      color: #24304a;
+      line-height: 1.1;
+    }
+
+    .hud-target,
+    .tool-subtitle {
+      font-size: 14px;
+      font-weight: 800;
+      color: #4c5b76;
+    }
+
+    .meter {
+      margin-top: 10px;
+    }
+
+    .meter-track {
+      position: relative;
+      height: 38px;
+      border-radius: 18px;
+      border: 4px solid #5d6883;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .meter-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      min-width: 8px;
+      background: linear-gradient(180deg, #66bbff 0%, #479cf0 100%);
+      border-radius: 13px;
+      transition: width 140ms ease;
+    }
+
+    .meter-marker {
+      position: absolute;
+      top: -3px;
+      bottom: -3px;
+      width: 5px;
+      border-radius: 999px;
+      background: #f7aa27;
+      transform: translateX(-50%);
+    }
+
+    .hud-status {
+      margin-top: 10px;
+      font-size: 15px;
+      font-weight: 900;
+      color: #24304a;
+    }
+
+    .hud-feedback {
+      margin-top: 6px;
+      min-height: 36px;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #627189;
+      font-weight: 800;
+    }
+
+    .hud-actions {
+      display: grid;
+      grid-template-columns: 1fr 82px;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .hud-buttons {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.36fr);
+      gap: 12px;
+      margin-top: 10px;
+    }
+
+    .tool-meter {
+      width: 118px;
+      flex: 0 0 118px;
+    }
+
+    .tool-meter .meter-track {
+      height: 24px;
+      border-width: 3px;
+    }
+
+    .tool-meter .meter-fill {
+      border-radius: 9px;
+    }
+
+    .tool-meter .meter-note {
+      margin-top: 5px;
+      font-size: 12px;
+      font-weight: 900;
+      color: #4c5b76;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .tool-close {
+      border: 0;
+      background: transparent;
+      cursor: pointer;
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      color: #24304a;
+      font-size: 24px;
+      line-height: 1;
+    }
+
+    .tool-close:hover {
+      background: rgba(36, 48, 74, .08);
+    }
+
+    .btn {
+      min-height: 46px;
+      border-radius: 16px;
+      border: 2px solid #c8d8ec;
+      background: #ffffff;
+      color: #24304a;
+      font-size: 17px;
+      font-weight: 900;
+      cursor: pointer;
+      padding: 0 14px;
+      box-shadow: 0 2px 0 rgba(95, 111, 138, .08);
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      border-color: #1e66b5;
+      background: linear-gradient(180deg, #56aaf7 0%, #2f8ee8 100%);
+      color: #ffffff;
+    }
+
+    .btn-quiet {
+      background: #f7fbff;
+    }
+
+    .btn-log {
+      min-height: 62px;
+      line-height: 1.05;
+    }
+
+    .tool-actions {
+      display: grid;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .tool-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .tool-row.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .tool-preset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .preset-btn {
+      min-height: 34px;
+      border-radius: 14px;
+      border: 2px solid #d2dfef;
+      background: #ffffff;
+      color: #24304a;
+      font-size: 13px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .preset-btn.active {
+      background: #ffb22e;
+      border-color: #d88a12;
+      color: #ffffff;
+    }
+
+    .btn-toggle.active-supply {
+      border-color: #39bc80;
+      background: #39bc80;
+      color: #ffffff;
+    }
+
+    .btn-toggle.active-pump {
+      border-color: #ff775c;
+      background: #ff775c;
+      color: #ffffff;
+    }
+
+    .tool-hint {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.4;
+      color: #627189;
+      font-weight: 800;
+    }
+
+    .report-sheet {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 232px;
+      border-radius: 16px;
+      border: 2px solid #bfd3ec;
+      background: rgba(255, 255, 255, .95);
+      box-shadow: 0 12px 24px rgba(56, 80, 117, .14);
+      padding: 16px 18px;
+      pointer-events: auto;
+    }
+
+    .report-title {
+      margin: 0 0 10px;
+      font-size: 20px;
+      font-weight: 900;
+      color: #24304a;
+    }
+
+    .report-copy {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #5e6c85;
+      font-weight: 800;
+      white-space: pre-wrap;
+    }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
 </head>
 <body>
   <div id="game-shell">
-    <div id="game"></div>
+    <div class="stage-frame">
+      <div id="game"></div>
+      <div id="hud-layer" aria-hidden="true">
+        <section class="hud-panel" id="hudPanel" hidden>
+          <div id="hudDefault">
+            <div class="hud-actions">
+              <div>
+                <div class="hud-topline">
+                  <h2 class="hud-title">供水池水位</h2>
+                  <div class="hud-target" id="hudTarget">目标 0.00</div>
+                </div>
+                <div class="meter">
+                  <div class="meter-track">
+                    <div class="meter-fill" id="hudMeterFill"></div>
+                    <div class="meter-marker" id="hudMeterMarker"></div>
+                  </div>
+                </div>
+                <div class="hud-status" id="hudStatus">当前 0.00</div>
+                <div class="hud-feedback" id="hudFeedback"></div>
+              </div>
+              <button class="btn btn-primary btn-log" id="hudReportBtn" type="button">水路<br>日志</button>
+            </div>
+            <div class="hud-buttons">
+              <button class="btn btn-quiet" id="hudResetBtn" type="button">重来</button>
+              <button class="btn btn-primary" id="hudCheckBtn" type="button">放水试试</button>
+            </div>
+          </div>
+          <div id="hudTool" hidden>
+            <div class="tool-head">
+              <div>
+                <h2 class="tool-title" id="toolTitle">山泉输水管</h2>
+                <div class="tool-subtitle" id="toolSubtitle">输水管 · 中管</div>
+              </div>
+              <div class="tool-meter">
+                <div class="meter-track">
+                  <div class="meter-fill" id="toolMeterFill"></div>
+                  <div class="meter-marker" id="toolMeterMarker"></div>
+                </div>
+                <div class="meter-note">
+                  <span id="toolCurrent">当前 0.00</span>
+                  <span id="toolTarget">目标 0.00</span>
+                </div>
+              </div>
+              <button class="tool-close" id="toolCloseBtn" type="button" aria-label="关闭">×</button>
+            </div>
+            <div class="tool-actions" id="toolActions"></div>
+            <div class="tool-hint" id="toolHint"></div>
+          </div>
+        </section>
+        <aside class="report-sheet" id="reportSheet" hidden>
+          <h3 class="report-title">水路日志</h3>
+          <p class="report-copy" id="reportCopy"></p>
+        </aside>
+      </div>
+    </div>
   </div>
   <div class="fallback" id="fallback" hidden>
     <div>
@@ -388,6 +722,222 @@
         scene.flowDots.push({ path, dots, reverse, speed, offset: Math.random() });
       }
 
+      function createHudLayer() {
+        const el = {
+          layer: document.getElementById("hud-layer"),
+          panel: document.getElementById("hudPanel"),
+          defaultBox: document.getElementById("hudDefault"),
+          toolBox: document.getElementById("hudTool"),
+          meterFill: document.getElementById("hudMeterFill"),
+          meterMarker: document.getElementById("hudMeterMarker"),
+          status: document.getElementById("hudStatus"),
+          target: document.getElementById("hudTarget"),
+          feedback: document.getElementById("hudFeedback"),
+          reportBtn: document.getElementById("hudReportBtn"),
+          resetBtn: document.getElementById("hudResetBtn"),
+          checkBtn: document.getElementById("hudCheckBtn"),
+          toolTitle: document.getElementById("toolTitle"),
+          toolSubtitle: document.getElementById("toolSubtitle"),
+          toolMeterFill: document.getElementById("toolMeterFill"),
+          toolMeterMarker: document.getElementById("toolMeterMarker"),
+          toolCurrent: document.getElementById("toolCurrent"),
+          toolTarget: document.getElementById("toolTarget"),
+          toolCloseBtn: document.getElementById("toolCloseBtn"),
+          toolActions: document.getElementById("toolActions"),
+          toolHint: document.getElementById("toolHint"),
+          reportSheet: document.getElementById("reportSheet"),
+          reportCopy: document.getElementById("reportCopy")
+        };
+
+        let scene = null;
+
+        function markerPercent(value) {
+          return `${clamp(value, 0, 1.15) / 1.15 * 100}%`;
+        }
+
+        function fillPercent(value) {
+          return `${Math.max(2, clamp(value, 0, 1.15) / 1.15 * 100)}%`;
+        }
+
+        function pipeLabel(pipe) {
+          return pipe.type === "pump" ? "抽水管" : "输水管";
+        }
+
+        function setReport(sceneRef) {
+          const inputs = sceneRef.sample.inputs
+            .map((value, index) => `${sceneRef.level.inputNames[index] || `水源${index + 1}`} ${fmt(value)}`)
+            .join("，");
+          el.reportSheet.hidden = !sceneRef.reportOpen;
+          el.reportBtn.innerHTML = sceneRef.reportOpen ? "收起<br>日志" : "水路<br>日志";
+          el.reportCopy.textContent = `来水：${inputs}\n现在水位：${fmt(sceneRef.row.y)}\n目标黄线：${fmt(sceneRef.sample.target)}\n提示：水少就加粗输水管；水多就调细，或把某根管改成抽水管。`;
+        }
+
+        function renderDefault(sceneRef) {
+          el.defaultBox.hidden = false;
+          el.toolBox.hidden = true;
+          el.target.textContent = `目标 ${fmt(sceneRef.sample.target)}`;
+          el.meterFill.style.width = fillPercent(sceneRef.row.y);
+          el.meterMarker.style.left = markerPercent(sceneRef.sample.target);
+          el.status.textContent = `当前 ${fmt(sceneRef.row.y)} · ${waterStatus(sceneRef.row.y, sceneRef.sample.target)}`;
+          el.feedback.textContent = sceneRef.feedback;
+          el.feedback.style.color = sceneRef.feedbackKind === "good" ? "#247a50" : "#627189";
+          setReport(sceneRef);
+        }
+
+        function renderTool(sceneRef) {
+          const isBias = sceneRef.selected.kind === "bias";
+          const pipe = isBias ? null : sceneRef.level.pipes.find(item => item.id === sceneRef.selected.id);
+          el.defaultBox.hidden = true;
+          el.toolBox.hidden = false;
+          el.reportSheet.hidden = true;
+          el.toolTitle.textContent = isBias ? "泵站" : pipe.label;
+          el.toolSubtitle.textContent = isBias ? `当前水压 ${fmt(sceneRef.level.bias.value)}` : `${pipeLabel(pipe)} · ${strengthName(pipe.strength)}`;
+          el.toolMeterFill.style.width = fillPercent(sceneRef.row.y);
+          el.toolMeterMarker.style.left = markerPercent(sceneRef.sample.target);
+          el.toolCurrent.textContent = `当前 ${fmt(sceneRef.row.y)}`;
+          el.toolTarget.textContent = `目标 ${fmt(sceneRef.sample.target)}`;
+          el.toolActions.innerHTML = "";
+
+          if (isBias) {
+            const row1 = document.createElement("div");
+            row1.className = "tool-row";
+            row1.append(
+              makeDomButton("−", "btn btn-quiet", () => sceneRef.setBias(sceneRef.level.bias.value - BIAS_NUDGE)),
+              makeDomButton("+", "btn btn-quiet", () => sceneRef.setBias(sceneRef.level.bias.value + BIAS_NUDGE)),
+              makeDomButton("关闭", "btn btn-quiet", () => sceneRef.setBias(0))
+            );
+            el.toolActions.appendChild(row1);
+
+            const presets = [
+              { label: "降低", value: -0.2 },
+              { label: "关闭", value: 0 },
+              { label: "微升", value: 0.2 },
+              { label: "升高", value: 0.4 },
+              { label: "强升", value: 0.6 }
+            ].filter(item => item.value >= sceneRef.level.bias.min && item.value <= sceneRef.level.bias.max);
+            const presetGrid = document.createElement("div");
+            presetGrid.className = "tool-preset-grid";
+            presets.forEach(preset => {
+              presetGrid.appendChild(makeDomButton(
+                preset.label,
+                `preset-btn${Math.abs(sceneRef.level.bias.value - preset.value) < .005 ? " active" : ""}`,
+                () => sceneRef.setBias(preset.value)
+              ));
+            });
+            el.toolActions.appendChild(presetGrid);
+            el.toolHint.textContent = "泵站会整体抬高或压低这一关的基础水位。";
+            return;
+          }
+
+          const installRow = document.createElement("div");
+          installRow.className = "tool-row two";
+          installRow.appendChild(makeDomButton(
+            pipe.installed ? "拆下管道" : "安装管道",
+            `btn ${pipe.installed ? "btn-quiet" : "btn-primary"}`,
+            () => {
+              pipe.installed = !pipe.installed;
+              sceneRef.render();
+            }
+          ));
+          if (!pipe.lockType) {
+            installRow.appendChild(makeDomButton(
+              pipe.type === "pump" ? "抽水管" : "输水管",
+              `btn btn-toggle ${pipe.type === "pump" ? "active-pump" : "active-supply"}`,
+              () => {
+                pipe.type = pipe.type === "pump" ? "supply" : "pump";
+                pipe.installed = true;
+                sceneRef.render();
+              }
+            ));
+          } else {
+            installRow.appendChild(makeDomButton(pipeLabel(pipe), "btn btn-quiet", () => {}));
+          }
+          el.toolActions.appendChild(installRow);
+
+          if (pipe.lockStrength) {
+            el.toolHint.textContent = "这根管道粗细固定，这一关只需要把它接上。";
+            return;
+          }
+
+          const adjustRow = document.createElement("div");
+          adjustRow.className = "tool-row";
+          adjustRow.append(
+            makeDomButton("−", "btn btn-quiet", () => sceneRef.setPipe(pipe, pipe.strength - PIPE_NUDGE)),
+            makeDomButton("+", "btn btn-quiet", () => sceneRef.setPipe(pipe, pipe.strength + PIPE_NUDGE)),
+            makeDomButton("关闭", "btn btn-quiet", () => sceneRef.setPipe(pipe, 0))
+          );
+          el.toolActions.appendChild(adjustRow);
+
+          const presets = [
+            { label: "细管", value: .25 },
+            { label: "中管", value: .5 },
+            { label: "稍粗", value: .6 },
+            { label: "粗管", value: .75 },
+            { label: "全开", value: 1 }
+          ];
+          const presetGrid = document.createElement("div");
+          presetGrid.className = "tool-preset-grid";
+          presets.forEach(preset => {
+            presetGrid.appendChild(makeDomButton(
+              preset.label,
+              `preset-btn${Math.abs(pipe.strength - preset.value) < .005 ? " active" : ""}`,
+              () => sceneRef.setPipe(pipe, preset.value)
+            ));
+          });
+          el.toolActions.appendChild(presetGrid);
+          el.toolHint.textContent = "一边调管道，一边看右上角小水位条和场景里的供水池。";
+        }
+
+        function makeDomButton(label, className, onClick) {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.className = className;
+          button.textContent = label;
+          button.addEventListener("click", onClick);
+          return button;
+        }
+
+        el.resetBtn.addEventListener("click", () => scene && scene.scene.restart({ levelIndex: scene.levelIndex }));
+        el.checkBtn.addEventListener("click", () => scene && scene.checkLevel());
+        el.reportBtn.addEventListener("click", () => {
+          if (!scene) return;
+          scene.reportOpen = !scene.reportOpen;
+          render(scene);
+        });
+        el.toolCloseBtn.addEventListener("click", () => {
+          if (!scene) return;
+          scene.selected = null;
+          scene.render();
+        });
+
+        function show(sceneRef) {
+          scene = sceneRef;
+          el.panel.hidden = false;
+          el.layer.setAttribute("aria-hidden", "false");
+        }
+
+        function hide() {
+          scene = null;
+          el.panel.hidden = true;
+          el.reportSheet.hidden = true;
+          el.layer.setAttribute("aria-hidden", "true");
+        }
+
+        function render(sceneRef) {
+          if (!sceneRef) return;
+          scene = sceneRef;
+          if (sceneRef.selected) {
+            renderTool(sceneRef);
+          } else {
+            renderDefault(sceneRef);
+          }
+        }
+
+        return { show, hide, render };
+      }
+
+      const hud = createHudLayer();
+
       function setImageCover(image, width, height) {
         const sx = width / image.width;
         const sy = height / image.height;
@@ -426,6 +976,7 @@
         }
 
         create() {
+          hud.hide();
           this.cameras.main.setBackgroundColor("#ccefff");
           this.add.rectangle(W / 2, H / 2, W, H, 0xe4f7e6);
           this.add.image(W / 2, 380, "chapterMap").setDisplaySize(390, 640).setAlpha(.38);
@@ -464,6 +1015,7 @@
         }
 
         create() {
+          hud.hide();
           this.cameras.main.setBackgroundColor("#c9efff");
           this.render();
         }
@@ -601,6 +1153,7 @@
         }
 
         create() {
+          hud.show(this);
           this.cameras.main.setBackgroundColor("#dff3db");
           this.render();
         }
@@ -613,7 +1166,7 @@
           this.sample = this.level.samples[this.sampleIndex];
           this.drawHeader();
           this.drawBoard();
-          this.drawHud();
+          hud.render(this);
           if (this.clearModal) this.drawClearModal(this.clearModal);
         }
 
@@ -1047,6 +1600,7 @@
         }
 
         create() {
+          hud.hide();
           this.cameras.main.setBackgroundColor("#dff3db");
           this.add.image(W / 2, H / 2, "chapterMap").setDisplaySize(390, 844).setAlpha(.28);
           roundedRect(this, 24, 58, 342, 696, 24, 0xffffff, .94, 0xbfd3ec, 2);
