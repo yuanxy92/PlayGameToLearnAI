@@ -494,9 +494,9 @@
             { x: 116, y: 708 },
             { x: 181, y: 628 },
             { x: 270, y: 552 },
-            { x: 184, y: 480 },
+            { x: 182, y: 484 },
             { x: 184, y: 408 },
-            { x: 235, y: 316 },
+            { x: 232, y: 316 },
             { x: 197, y: 244 }
           ];
 
@@ -508,7 +508,7 @@
             const unlocked = isLevelUnlocked(index);
             const done = Boolean(GAME_STATE.progress[levels[index].id]);
             const color = done ? colors.goldDark : unlocked ? colors.blueDark : 0x7b8798;
-            const glow = this.add.circle(point.x, point.y + 4, 24, 0xffffff, .5);
+            const glow = this.add.circle(point.x, point.y + 2, 20, 0xffffff, .46);
             const label = addText(this, point.x, point.y, String(index + 1), 31, color, { weight: "900", originX: .5, originY: .5, stroke: 0xffffff, strokeThickness: 8 });
             if (done) {
               addText(this, point.x + 19, point.y - 19, "✓", 15, colors.goldDark, { weight: "900", originX: .5, originY: .5, stroke: 0xffffff, strokeThickness: 5 });
@@ -520,7 +520,7 @@
               GAME_STATE.levelIndex = index;
               this.scene.start("Level", { levelIndex: index });
             });
-            this.tweens.add({ targets: [glow, label], y: "-=2", duration: 1200 + index * 70, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+            this.tweens.add({ targets: glow, alpha: .26, duration: 1200 + index * 70, yoyo: true, repeat: -1, ease: "Sine.inOut" });
           });
 
           makeButton(this, 24, 784, 156, 44, "第 1 章 已解锁", () => {}, {
@@ -669,15 +669,16 @@
           const inputYs = this.sample.inputs.length === 1 ? [baseY + 82] : [baseY + 42, baseY + 158];
           this.pipePaths = new Map();
           this.pipeHit = new Map();
+          const sourceX = 70;
           this.sample.inputs.forEach((value, index) => {
             const y = inputYs[index];
             const name = this.level.inputNames[index] || `水源 ${index + 1}`;
-            const spring = this.add.image(64, y, "sourceSpring").setDisplaySize(78, 78);
-            this.tweens.add({ targets: spring, y: y - 4, duration: 1150 + index * 160, yoyo: true, repeat: -1, ease: "Sine.inOut" });
-            this.add.circle(46, y - 27, 3, colors.waterLight, .9);
-            this.add.circle(76, y - 32, 2.5, colors.waterLight, .8);
-            addText(this, 64, y + 43, name, 20, 0xffffff, { weight: "900", originX: .5, stroke: colors.ink, strokeThickness: 5 });
-            addText(this, 64, y + 69, `流量 ${fmt(value)}`, 15, 0xffffff, { weight: "900", originX: .5, stroke: colors.muted, strokeThickness: 4 });
+            const spring = this.add.image(sourceX, y, "sourceSpring").setDisplaySize(78, 78);
+            this.tweens.add({ targets: spring, y: y - 3, duration: 1150 + index * 160, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+            this.add.circle(sourceX - 18, y - 27, 3, colors.waterLight, .9);
+            this.add.circle(sourceX + 12, y - 32, 2.5, colors.waterLight, .8);
+            addText(this, sourceX, y + 43, name, 20, 0xffffff, { weight: "900", originX: .5, stroke: colors.ink, strokeThickness: 5 });
+            addText(this, sourceX, y + 69, `流量 ${fmt(value)}`, 15, 0xffffff, { weight: "900", originX: .5, stroke: colors.muted, strokeThickness: 4 });
           });
 
           const poolX = 226;
@@ -719,30 +720,44 @@
 
         drawPipes(inputYs, poolX, poolY) {
           const g = this.add.graphics();
+          const sourceX = 70;
           this.level.pipes.forEach(pipe => {
             const y = inputYs[pipe.input];
-            const path = new Phaser.Curves.Path(98, y);
-            const bendY = pipe.input === 0 ? poolY - 58 : poolY + 46;
-            path.cubicBezierTo(142, y - 6, 158, bendY, poolX - 50, poolY);
+            const startX = sourceX + 33;
+            const startY = y - 2;
+            const endX = poolX - 43;
+            const endY = poolY + (pipe.input === 0 ? -1 : 1);
+            const bendY = pipe.input === 0 ? poolY - 42 : poolY + 42;
+            const path = new Phaser.Curves.Path(startX, startY);
+            path.cubicBezierTo(startX + 26, startY - 3, endX - 34, bendY, endX, endY);
             this.pipePaths.set(pipe.id, path);
-            const width = pipe.installed ? 10 + pipe.strength * 8 : 9;
+            const width = pipe.installed ? 9 + pipe.strength * 7 : 6;
             if (this.selected && this.selected.kind === "pipe" && this.selected.id === pipe.id) {
               drawPath(g, path, width + 16, 0xffffff, .94);
               drawPath(g, path, width + 10, colors.gold, .86);
             }
-            drawPath(g, path, width + 8, 0xb48144, .92);
-            drawPath(g, path, width + 3, colors.pipeRim, 1);
-            drawPath(g, path, Math.max(4, width - 3), pipe.installed ? 0xe6f7ff : 0xf1d6ad, pipe.installed ? .95 : .55);
+            if (pipe.installed) {
+              drawPath(g, path, width + 6, 0xb48144, .92);
+              drawPath(g, path, width + 2, colors.pipeRim, 1);
+              drawPath(g, path, Math.max(3, width - 2), 0xe6f7ff, .95);
+            } else {
+              const guidePoints = [.22, .45, .68].map(t => path.getPoint(t));
+              guidePoints.forEach((pt, guideIndex) => {
+                this.add.circle(pt.x, pt.y, 4.5 - guideIndex * .6, 0xd7b37f, .72 - guideIndex * .1);
+              });
+            }
+            this.add.circle(startX, startY, pipe.installed ? 6 : 4.5, 0xc28c49, pipe.installed ? 1 : .45);
+            this.add.circle(endX, endY, pipe.installed ? 6 : 4.5, 0xc28c49, pipe.installed ? 1 : .45);
             if (pipe.installed && pipe.strength > .02 && Math.abs((this.sample.inputs[pipe.input] || 0) * pipe.strength) > .01) {
               makeFlow(this, path, pipe.type === "pump" ? 0xff8d5b : colors.water, pipe.type === "pump", 6, .22 + pipe.strength * .08);
             }
-            const mid = path.getPoint(.46);
+            const mid = path.getPoint(.48);
             const hit = this.add.zone(mid.x, mid.y, 120, 74);
             hit.setInteractive({ useHandCursor: true });
             hit.on("pointerdown", () => this.selectPipe(pipe.id));
             const label = pipe.installed ? `${pipe.type === "pump" ? "抽水管" : "输水管"} · ${strengthName(pipe.strength)}` : "点这里安装";
-            roundedRect(this, mid.x - 45, mid.y - 48, 90, 22, 10, 0xffffff, .78, 0xffffff, 0);
-            addText(this, mid.x, mid.y - 43, label, 12, pipe.type === "pump" ? colors.pump : colors.blueDark, { weight: "900", originX: .5 });
+            roundedRect(this, mid.x - 45, mid.y - 42, 90, 22, 10, 0xffffff, pipe.installed ? .78 : .88, 0xffffff, 0);
+            addText(this, mid.x, mid.y - 37, label, 12, pipe.installed && pipe.type === "pump" ? colors.pump : colors.blueDark, { weight: "900", originX: .5 });
           });
 
           if (this.level.bias) {
