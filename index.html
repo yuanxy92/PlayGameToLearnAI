@@ -447,6 +447,10 @@
       font-size: 11px;
     }
 
+    body[data-view="map"] .progress {
+      display: none;
+    }
+
     .top-actions {
       display: flex;
       align-items: center;
@@ -472,141 +476,182 @@
       height: 100%;
       display: grid;
       grid-template-rows: minmax(0, 1fr) auto;
+      gap: 8px;
       overflow: hidden;
-      border: 1px solid var(--line);
       border-radius: 16px;
-      background:
-        linear-gradient(180deg, rgba(255, 253, 246, .38), rgba(255, 245, 215, .48)),
-        url("./assets/board-bg.png");
-      background-size: cover;
-      background-position: center;
-      box-shadow: var(--shadow);
     }
 
     .map-scene {
       position: relative;
+      align-self: center;
+      justify-self: center;
+      width: min(100%, calc((100dvh - 126px) * .563));
+      max-width: 520px;
+      max-height: 100%;
+      aspect-ratio: 941 / 1672;
       min-height: 0;
-      padding: 14px;
       overflow: hidden;
+      border: 1px solid rgba(164, 187, 214, .9);
+      border-radius: 18px;
+      background: #fff8df;
+      box-shadow: var(--shadow);
     }
 
-    .map-town {
+    .map-art {
       position: absolute;
-      right: 10px;
-      top: 12px;
-      width: 118px;
-      opacity: .96;
-      filter: drop-shadow(0 8px 10px rgba(38, 48, 71, .16));
-      pointer-events: none;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
 
     .map-title {
-      position: relative;
-      z-index: 1;
-      max-width: 260px;
+      position: absolute;
+      left: 5%;
+      top: 4%;
+      z-index: 2;
+      max-width: 54%;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255, 253, 248, .74);
+      backdrop-filter: blur(3px);
     }
 
     .map-title h2 {
       margin: 0 0 6px;
-      font-size: 24px;
+      font-size: clamp(19px, 5.4vw, 25px);
       line-height: 1.08;
     }
 
     .map-title p {
       margin: 0;
       color: #526178;
-      font-size: 13px;
+      font-size: clamp(11px, 3vw, 13px);
       line-height: 1.45;
     }
 
-    .chapter-road {
-      position: absolute;
-      left: 50px;
-      right: 46px;
-      top: 150px;
-      height: 180px;
-      border-left: 8px dotted rgba(82, 100, 126, .28);
-      transform: rotate(58deg);
-      transform-origin: left top;
-      pointer-events: none;
-    }
-
-    .chapter-node {
+    .map-level {
       position: absolute;
       z-index: 2;
+      transform: translate(-50%, -50%);
       display: grid;
-      gap: 6px;
-      width: min(78%, 330px);
-      padding: 12px;
-      border: 1px solid #bfd0e6;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, .92);
-      box-shadow: 0 14px 24px rgba(38, 48, 71, .16), inset 0 -4px 0 rgba(72, 169, 248, .12);
-      text-align: left;
-    }
-
-    .chapter-node.one {
-      left: 16px;
-      bottom: 138px;
-    }
-
-    .chapter-node.two {
-      right: 16px;
-      bottom: 18px;
-    }
-
-    .chapter-node.locked {
-      opacity: .72;
-      filter: grayscale(.28);
-    }
-
-    .node-kicker {
-      color: #256ea8;
-      font-size: 11px;
-      font-weight: 860;
-    }
-
-    .chapter-node strong {
-      display: block;
-      font-size: 18px;
-      line-height: 1.14;
-    }
-
-    .chapter-node span {
-      color: var(--muted);
-      font-size: 12px;
-      line-height: 1.38;
-    }
-
-    .chapter-node button {
-      min-height: 36px;
-      border: 1px solid #2167ae;
-      border-radius: 9px;
+      grid-template-columns: auto;
+      align-items: center;
+      justify-content: center;
+      min-width: 46px;
+      width: 48px;
+      height: 48px;
+      min-height: 46px;
+      max-width: 154px;
+      border: 2px solid #ffffff;
+      border-radius: 999px;
       background: linear-gradient(180deg, #4fb4ff, #2e76d2);
       color: #fff;
       cursor: pointer;
       box-shadow: inset 0 -4px 0 rgba(23, 73, 132, .25);
-      font-size: 13px;
+      text-align: left;
       font-weight: 860;
+      padding: 5px;
     }
 
-    .chapter-node button:disabled {
-      border-color: #c2ccda;
+    .map-level strong {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .92);
+      color: #2264ad;
+      font-size: 16px;
+      line-height: 1;
+    }
+
+    .map-level span {
+      display: none;
+      min-width: 0;
+      font-size: 11px;
+      line-height: 1.16;
+      white-space: nowrap;
+    }
+
+    .map-level.locked {
       background: #f3f6fa;
       color: #7b8798;
-      box-shadow: none;
+      border-color: rgba(255, 255, 255, .8);
       cursor: default;
+      filter: grayscale(.55);
+      box-shadow: 0 5px 12px rgba(38, 48, 71, .12);
+    }
+
+    .map-level.locked strong {
+      color: #7b8798;
+      background: rgba(255, 255, 255, .82);
+    }
+
+    .map-level.done {
+      background: linear-gradient(180deg, #ffc857, #ef9f25);
+      color: #263047;
+    }
+
+    .map-level.active {
+      outline: 4px solid rgba(255, 207, 74, .46);
+    }
+
+    .map-level.l1 { left: 20%; top: 82%; }
+    .map-level.l2 { left: 42%; top: 76%; }
+    .map-level.l3 { left: 64%; top: 67%; }
+    .map-level.l4 { left: 76%; top: 55%; }
+    .map-level.l5 { left: 57%; top: 45%; }
+    .map-level.l6 { left: 36%; top: 35%; }
+    .map-level.l7 { left: 43%; top: 24%; }
+
+    .chapter-gate {
+      position: absolute;
+      right: 5%;
+      top: 12%;
+      z-index: 2;
+      width: min(36%, 150px);
+      padding: 9px;
+      border: 1px solid #bfd0e6;
+      border-radius: 13px;
+      background: rgba(255, 255, 255, .86);
+      box-shadow: 0 10px 20px rgba(38, 48, 71, .14);
+      display: grid;
+      gap: 5px;
+    }
+
+    .chapter-gate strong {
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .chapter-gate span {
+      color: #6b7689;
+      font-size: 11px;
+      line-height: 1.32;
+    }
+
+    .chapter-gate button {
+      min-height: 31px;
+      border: 1px solid #c2ccda;
+      border-radius: 9px;
+      background: #f3f6fa;
+      color: #7b8798;
+      font-size: 11px;
+      font-weight: 820;
     }
 
     .map-footer {
       display: grid;
       gap: 4px;
-      padding: 10px 12px;
-      border-top: 1px solid rgba(201, 215, 234, .8);
-      background: rgba(255, 253, 248, .9);
+      padding: 9px 12px;
+      border: 1px solid rgba(201, 215, 234, .9);
+      border-radius: 14px;
+      background: rgba(255, 253, 248, .92);
       color: #58657b;
       font-size: 12px;
       line-height: 1.35;
+      box-shadow: 0 8px 18px rgba(38, 48, 71, .08);
     }
 
     .level-strip {
@@ -1571,6 +1616,29 @@
         min-width: 64px;
         padding: 5px 7px;
       }
+
+      .chapter-gate {
+        width: 34%;
+        padding: 8px;
+      }
+
+      .chapter-gate span {
+        display: none;
+      }
+    }
+
+    @media (min-width: 620px) {
+      .map-level {
+        grid-template-columns: auto minmax(0, 1fr);
+        width: auto;
+        height: auto;
+        gap: 6px;
+        padding: 5px 10px 6px 5px;
+      }
+
+      .map-level span {
+        display: block;
+      }
     }
 
     @media (max-height: 720px) {
@@ -1693,20 +1761,19 @@
 
     <section class="chapter-map" id="chapterMap" aria-labelledby="mapTitle">
       <div class="map-scene">
-        <img class="map-town" src="./assets/qingxi-town-alpha.png" alt="">
+        <img class="map-art" src="./assets/chapter-map.png" alt="">
         <div class="map-title">
           <h2 id="mapTitle">青溪镇地图</h2>
-          <p>沿着水路修复每一片区域。每一章学会一种小机器的规律。</p>
+          <p id="chapterOneStatus">沿着水路修好 7 座小水闸。</p>
         </div>
-        <div class="chapter-road" aria-hidden="true"></div>
-        <div class="chapter-node one">
-          <div class="node-kicker">第 1 章 · 线性水路</div>
-          <strong>管道粗细和泵站</strong>
-          <span id="chapterOneStatus">学会让水量按直线规则变化。</span>
-          <button id="startChapterOneBtn">进入第 1 章</button>
-        </div>
-        <div class="chapter-node two locked" id="chapterTwoNode">
-          <div class="node-kicker">第 2 章 · 闸门系统</div>
+        <button class="map-level l1" data-map-level="0"><strong>1</strong><span>接通山泉</span></button>
+        <button class="map-level l2" data-map-level="1"><strong>2</strong><span>调管道</span></button>
+        <button class="map-level l3" data-map-level="2"><strong>3</strong><span>两源合流</span></button>
+        <button class="map-level l4" data-map-level="3"><strong>4</strong><span>抽水管</span></button>
+        <button class="map-level l5" data-map-level="4"><strong>5</strong><span>泵站</span></button>
+        <button class="map-level l6" data-map-level="5"><strong>6</strong><span>几种水情</span></button>
+        <button class="map-level l7" data-map-level="6"><strong>7</strong><span>水路日志</span></button>
+        <div class="chapter-gate" id="chapterTwoNode">
           <strong>激活函数</strong>
           <span id="chapterTwoStatus">止回阀、限流阀和软闸门正在建设中。</span>
           <button id="chapterTwoBtn" disabled>即将开放</button>
@@ -2121,7 +2188,7 @@
       chapterMap: document.getElementById("chapterMap"),
       gameStage: document.getElementById("gameStage"),
       mapBtn: document.getElementById("mapBtn"),
-      startChapterOneBtn: document.getElementById("startChapterOneBtn"),
+      mapLevelButtons: Array.from(document.querySelectorAll("[data-map-level]")),
       chapterOneStatus: document.getElementById("chapterOneStatus"),
       chapterTwoNode: document.getElementById("chapterTwoNode"),
       chapterTwoBtn: document.getElementById("chapterTwoBtn"),
@@ -2190,9 +2257,18 @@
       const complete = chapterOneComplete();
       el.progressCount.textContent = `${passed}/${levels.length}`;
       el.chapterOneStatus.textContent = complete
-        ? "第 1 章已完成：线性水路档案已解锁。"
+        ? "第 1 章完成：线性水路档案已解锁。"
         : `已修好 ${passed}/${levels.length} 段水路。继续学习 y = wx + b。`;
-      el.startChapterOneBtn.textContent = complete ? "重玩第 1 章" : (passed > 0 ? "继续第 1 章" : "进入第 1 章");
+      el.mapLevelButtons.forEach(button => {
+        const index = Number(button.dataset.mapLevel);
+        const level = levels[index];
+        const unlocked = isLevelUnlocked(index);
+        const done = Boolean(level && state.progress[level.id] > 0);
+        button.disabled = !unlocked;
+        button.classList.toggle("locked", !unlocked);
+        button.classList.toggle("done", done);
+        button.classList.toggle("active", index === nextChapterOneLevel() && !complete);
+      });
       el.chapterTwoNode.classList.toggle("locked", true);
       el.chapterTwoBtn.disabled = true;
       el.chapterTwoBtn.textContent = complete ? "下一章设计中" : "通关第 1 章后查看";
@@ -2202,13 +2278,14 @@
       el.mapFooterTitle.textContent = complete ? "第 1 章完成：水路档案已解锁" : "当前目标：修完第 1 章";
       el.mapFooterText.textContent = complete
         ? "你已经学会 y = wx + b。下一步会学习闸门怎样让水路变成非直线规则。"
-        : "通关后会解锁水路档案，把游戏里的水管翻译成 y = wx + b。";
+        : "沿路逐关修复水闸。通关后会解锁水路档案，把水管翻译成 y = wx + b。";
     }
 
     function showMap() {
       state.selectedTool = null;
       state.clearOpen = false;
       state.summaryOpen = false;
+      document.body.dataset.view = "map";
       el.chapterMap.hidden = false;
       el.levelStrip.hidden = true;
       el.gameStage.hidden = true;
@@ -2216,6 +2293,7 @@
     }
 
     function showGame(index) {
+      document.body.dataset.view = "game";
       el.chapterMap.hidden = true;
       el.levelStrip.hidden = false;
       el.gameStage.hidden = false;
@@ -2862,7 +2940,13 @@
     el.clearReplayBtn.addEventListener("click", resetLevel);
     el.clearNextBtn.addEventListener("click", goNextLevel);
     el.mapBtn.addEventListener("click", showMap);
-    el.startChapterOneBtn.addEventListener("click", () => showGame(nextChapterOneLevel()));
+    el.mapLevelButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.mapLevel);
+        if (!isLevelUnlocked(index)) return;
+        showGame(index);
+      });
+    });
     el.summaryReplayBtn.addEventListener("click", () => showGame(0));
     el.summaryMapBtn.addEventListener("click", showMap);
     el.introNextBtn.addEventListener("click", goIntroNext);
