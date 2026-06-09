@@ -2,7 +2,7 @@ import Phaser from "phaser";
 import { BIAS_NUDGE, colors, MAX_FLOW, PIPE_NUDGE, W } from "./constants.js";
 import { addText, clamp, fmt, normalizedFlow, strengthName, waterStatus } from "./utils.js";
 
-function rr(scene, width, height, radius, fill, stroke, strokeWidth = 2, alpha = 1) {
+export function rr(scene, width, height, radius, fill, stroke, strokeWidth = 2, alpha = 1) {
   const rect = scene.rexUI.add.roundRectangle(0, 0, width, height, radius, fill, alpha);
   if (stroke !== undefined) {
     rect.setStrokeStyle(strokeWidth, stroke, 1);
@@ -10,14 +10,51 @@ function rr(scene, width, height, radius, fill, stroke, strokeWidth = 2, alpha =
   return rect;
 }
 
+export function createSurface(scene, x, y, width, height, opts = {}) {
+  const container = scene.add.container(x, y);
+  const shadow = scene.add.graphics();
+  shadow.fillStyle(opts.shadow ?? colors.shadow, opts.shadowAlpha ?? 0.14);
+  shadow.fillRoundedRect(0, 6, width, height, opts.radius ?? 24);
+  const card = scene.add.graphics();
+  card.fillStyle(opts.fill ?? colors.paper, opts.alpha ?? 0.92);
+  card.fillRoundedRect(0, 0, width, height, opts.radius ?? 24);
+  card.lineStyle(opts.lineWidth ?? 2, opts.stroke ?? colors.skyBorder, 1);
+  card.strokeRoundedRect(0, 0, width, height, opts.radius ?? 24);
+  container.add([shadow, card]);
+  return container;
+}
+
+export function createChip(scene, label, opts = {}) {
+  const width = opts.width ?? 92;
+  const height = opts.height ?? 28;
+  const chip = scene.rexUI.add.label({
+    width,
+    height,
+    background: rr(scene, width, height, opts.radius ?? 14, opts.fill ?? colors.paperSoft, opts.stroke ?? colors.skyBorder, 2),
+    text: scene.add.text(0, 0, label, {
+      fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
+      fontSize: `${opts.size ?? 13}px`,
+      fontStyle: opts.weight || "900",
+      color: Phaser.Display.Color.IntegerToColor(opts.color ?? colors.ink).rgba,
+      align: "center"
+    }).setOrigin(0.5),
+    align: "center",
+    space: { left: 12, right: 12, top: 5, bottom: 5 }
+  });
+  chip.setOrigin(0, 0);
+  return chip;
+}
+
 export function createButton(scene, label, onClick, opts = {}) {
+  const width = opts.width ?? 120;
+  const height = opts.height ?? 46;
   const button = scene.rexUI.add.label({
-    width: opts.width ?? 120,
-    height: opts.height ?? 46,
+    width,
+    height,
     background: rr(
       scene,
-      opts.width ?? 120,
-      opts.height ?? 46,
+      width,
+      height,
       opts.radius ?? 16,
       opts.fill ?? colors.paper,
       opts.stroke ?? colors.line,
@@ -30,7 +67,7 @@ export function createButton(scene, label, onClick, opts = {}) {
       fontStyle: opts.weight || "800",
       color: Phaser.Display.Color.IntegerToColor(opts.color ?? colors.ink).rgba,
       align: "center",
-      wordWrap: opts.wrap ? { width: opts.wrap, useAdvancedWrap: true } : undefined
+      wordWrap: { width: opts.wrap ?? Math.max(24, width - 28), useAdvancedWrap: true }
     }).setOrigin(0.5),
     align: "center",
     space: { left: 12, right: 12, top: 8, bottom: 8 }
@@ -96,27 +133,27 @@ function createPresetGrid(scene, buttons, columns = 3) {
 export function buildLevelHud(scene) {
   const panel = scene.rexUI.add.sizer({
     x: W / 2,
-    y: 732,
-    width: 370,
+    y: 736,
+    width: 358,
     orientation: "y",
-    space: { left: 14, right: 14, top: 14, bottom: 12, item: 10 }
+    space: { left: 16, right: 16, top: 16, bottom: 14, item: 12 }
   });
-  panel.addBackground(rr(scene, 370, 198, 18, 0xfffbef, 0xbfd3ec, 2, 0.99));
+  panel.addBackground(rr(scene, 358, 202, 22, 0xfffbef, 0xbfd3ec, 2, 0.99));
 
   if (scene.reportOpen) {
     const report = scene.rexUI.add.sizer({
       x: W / 2,
-      y: 536,
-      width: 344,
+      y: 520,
+      width: 330,
       orientation: "y",
       space: { left: 18, right: 18, top: 16, bottom: 16, item: 10 }
     });
-    report.addBackground(rr(scene, 344, 170, 16, 0xffffff, 0xbfd3ec, 2, 0.96));
+    report.addBackground(rr(scene, 330, 160, 18, 0xffffff, 0xbfd3ec, 2, 0.97));
     report.add(addText(scene, 0, 0, "水路日志", 20, colors.ink, { weight: "900" }));
     const inputs = scene.sample.inputs.map((value, index) => `${scene.level.inputNames[index] || `水源${index + 1}`} ${fmt(value)}`).join("，");
     report.add(addText(scene, 0, 0, `来水：${inputs}\n现在水位：${fmt(scene.row.y)}\n目标黄线：${fmt(scene.sample.target)}\n提示：水少就加粗输水管；水多就调细，或把某根改成抽水管。`, 14, colors.muted, {
       weight: "800",
-      wrap: 290,
+      wrap: 278,
       lineSpacing: 6
     }));
     report.layout();
@@ -135,14 +172,23 @@ export function buildLevelHud(scene) {
 
 function buildDefaultPanel(scene, panel) {
   const header = scene.rexUI.add.sizer({ orientation: "x" });
-  const left = scene.rexUI.add.sizer({ orientation: "y", width: 254, space: { item: 8 } });
-  left.add(addText(scene, 0, 0, "供水池水位", 17, colors.ink, { weight: "900" }));
-  const meter = createMeter(scene, { width: 248, value: scene.row.y, target: scene.sample.target });
+  const left = scene.rexUI.add.sizer({ orientation: "y", width: 226, space: { item: 8 } });
+  const titleRow = scene.rexUI.add.sizer({ orientation: "x", width: 226, space: { item: 8 } });
+  titleRow.add(addText(scene, 0, 0, "供水池水位", 17, colors.ink, { weight: "900" }), { proportion: 1 });
+  titleRow.add(createChip(scene, `目标 ${fmt(scene.sample.target)}`, {
+    width: 94,
+    height: 28,
+    fill: 0xffffff,
+    stroke: colors.gold,
+    size: 13
+  }));
+  left.add(titleRow);
+  const meter = createMeter(scene, { width: 232, value: scene.row.y, target: scene.sample.target });
   left.add(meter.root);
   left.add(addText(scene, 0, 0, `当前 ${fmt(scene.row.y)} · ${waterStatus(scene.row.y, scene.sample.target)}`, 15, colors.ink, { weight: "900" }));
   left.add(addText(scene, 0, 0, scene.feedback, 13, scene.feedbackKind === "good" ? colors.success : colors.muted, {
     weight: "800",
-    wrap: 240,
+    wrap: 230,
     lineSpacing: 5
   }));
 
@@ -150,44 +196,32 @@ function buildDefaultPanel(scene, panel) {
     scene.reportOpen = !scene.reportOpen;
     scene.render();
   }, {
-    width: 82,
-    height: 64,
+    width: 84,
+    height: 72,
     fill: colors.blue,
     stroke: colors.blueDark,
     color: 0xffffff,
-    size: 17
+    size: 16
   });
 
   header.add(left, { proportion: 1, expand: true });
   header.add(logButton, { align: "top" });
   panel.add(header, { expand: true });
 
-  const targetChip = scene.rexUI.add.label({
-    background: rr(scene, 110, 30, 15, 0xffffff, colors.gold, 2),
-    text: scene.add.text(0, 0, `目标 ${fmt(scene.sample.target)}`, {
-      fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      fontSize: "14px",
-      fontStyle: "800",
-      color: Phaser.Display.Color.IntegerToColor(colors.ink).rgba
-    }).setOrigin(0.5),
-    space: { left: 14, right: 14, top: 6, bottom: 6 }
-  });
-  panel.add(targetChip, { align: "right" });
-
   panel.add(createActionRow(scene, [
     createButton(scene, "重来", () => scene.scene.restart({ levelIndex: scene.levelIndex }), {
-      width: 132,
-      height: 46,
+      width: 126,
+      height: 48,
       fill: colors.paper,
       stroke: colors.line
     }),
     createButton(scene, "放水试试", () => scene.checkLevel(), {
       width: 186,
-      height: 46,
+      height: 48,
       fill: colors.blue,
       stroke: colors.blueDark,
       color: 0xffffff,
-      size: 20
+      size: 19
     })
   ]));
 }
@@ -199,13 +233,13 @@ function buildToolPanel(scene, panel) {
   const subtitle = isBias ? `当前水压 ${fmt(scene.level.bias.value)}` : `${pipe.type === "pump" ? "抽水管" : "输水管"} · ${strengthName(pipe.strength)}`;
 
   const top = scene.rexUI.add.sizer({ orientation: "x", space: { item: 10 } });
-  const titleBox = scene.rexUI.add.sizer({ orientation: "y", width: 146, space: { item: 6 } });
+  const titleBox = scene.rexUI.add.sizer({ orientation: "y", width: 134, space: { item: 6 } });
   titleBox.add(addText(scene, 0, 0, title, 20, colors.ink, { weight: "900" }));
-  titleBox.add(addText(scene, 0, 0, subtitle, 14, colors.muted, { weight: "900", wrap: 144 }));
-  const compactMeter = createMeter(scene, { width: 128, value: scene.row.y, target: scene.sample.target, compact: true });
-  const meterBox = scene.rexUI.add.sizer({ orientation: "y", width: 128, space: { item: 4 } });
+  titleBox.add(addText(scene, 0, 0, subtitle, 13, colors.muted, { weight: "900", wrap: 132 }));
+  const compactMeter = createMeter(scene, { width: 124, value: scene.row.y, target: scene.sample.target, compact: true });
+  const meterBox = scene.rexUI.add.sizer({ orientation: "y", width: 124, space: { item: 4 } });
   meterBox.add(compactMeter.root);
-  meterBox.add(addText(scene, 0, 0, `当前 ${fmt(scene.row.y)}   目标 ${fmt(scene.sample.target)}`, 11, colors.muted, { weight: "900", wrap: 128 }));
+  meterBox.add(addText(scene, 0, 0, `当前 ${fmt(scene.row.y)}\n目标 ${fmt(scene.sample.target)}`, 11, colors.muted, { weight: "900", wrap: 118, lineSpacing: 3 }));
   const closeButton = createButton(scene, "×", () => {
     scene.selected = null;
     scene.render();
@@ -236,7 +270,7 @@ function buildToolPanel(scene, panel) {
       { label: "强升", value: 0.6 }
     ].filter((item) => item.value >= scene.level.bias.min && item.value <= scene.level.bias.max);
     panel.add(createPresetGrid(scene, presets.map((preset) => createButton(scene, preset.label, () => scene.setBias(preset.value), {
-      width: 96,
+      width: 94,
       height: 34,
       radius: 14,
       size: 14,
@@ -324,8 +358,8 @@ function buildToolPanel(scene, panel) {
     { label: "全开", value: 1 }
   ];
   panel.add(createPresetGrid(scene, presets.map((preset) => createButton(scene, preset.label, () => scene.setPipe(pipe, preset.value), {
-    width: 96,
-    height: 34,
+      width: 94,
+      height: 34,
     radius: 14,
     size: 14,
     fill: Math.abs(pipe.strength - preset.value) < 0.005 ? colors.gold : colors.paper,
@@ -339,12 +373,12 @@ export function buildClearModal(scene, stars) {
   scene.add.rectangle(W / 2, 422, W, 844, colors.overlay, 0.42).setDepth(30);
   const dialog = scene.rexUI.add.dialog({
     x: W / 2,
-    y: 368,
-    width: 318,
-    background: rr(scene, 318, 340, 22, 0xffffff, 0xbfd3ec, 2),
+    y: 388,
+    width: 322,
+    background: rr(scene, 322, 356, 24, 0xffffff, 0xbfd3ec, 2),
     title: scene.add.text(0, 0, "水路打通！", {
       fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif",
-      fontSize: "30px",
+      fontSize: "28px",
       fontStyle: "900",
       color: Phaser.Display.Color.IntegerToColor(colors.ink).rgba
     }).setOrigin(0.5),
@@ -354,7 +388,7 @@ export function buildClearModal(scene, stars) {
       fontStyle: "800",
       color: Phaser.Display.Color.IntegerToColor(colors.muted).rgba,
       align: "center",
-      wordWrap: { width: 244, useAdvancedWrap: true },
+      wordWrap: { width: 248, useAdvancedWrap: true },
       lineSpacing: 8
     }).setOrigin(0.5, 0),
     actions: [
@@ -371,7 +405,7 @@ export function buildClearModal(scene, stars) {
       }, { width: 146, height: 42, fill: colors.blue, stroke: colors.blueDark, color: 0xffffff, size: 16 })
     ],
     align: { title: "center", content: "center", actions: "center" },
-    space: { left: 24, right: 24, top: 20, bottom: 20, content: 18, action: 14 }
+    space: { left: 24, right: 24, top: 22, bottom: 22, content: 18, action: 14 }
   });
   dialog.layout();
   dialog.setDepth(31);

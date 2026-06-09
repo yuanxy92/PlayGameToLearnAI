@@ -3,7 +3,7 @@ import { assets } from "./assets.js";
 import { H, W, BIAS_NUDGE, colors, PIPE_NUDGE } from "./constants.js";
 import { levels } from "./levels.js";
 import { GAME_STATE, isLevelUnlocked, passedCount, requestedLevelIndex, saveProgress, urlParams } from "./state.js";
-import { buildClearModal, buildLevelHud, createButton } from "./ui.js";
+import { buildClearModal, buildLevelHud, createButton, createChip, createSurface } from "./ui.js";
 import { addText, calcAll, clamp, cloneLevel, drawPath, fmt, makeFlow, normalizedFlow, roundedRect, setImageCover, starForLoss, strengthName, waterStatus } from "./utils.js";
 
 function ensureRexUI(scene) {
@@ -40,32 +40,48 @@ export class WelcomeScene extends Phaser.Scene {
   create() {
     ensureRexUI(this);
     this.cameras.main.setBackgroundColor("#ccefff");
-    this.add.rectangle(W / 2, H / 2, W, H, 0xe4f7e6);
-    this.add.image(W / 2, 380, "chapterMap").setDisplaySize(390, 640).setAlpha(0.38);
-    roundedRect(this, 22, 58, 346, 412, 28, 0xffffff, 0.88, 0xb6cee9, 2);
-    addText(this, 42, 82, "神经水厂", 38, colors.ink, { weight: "900" });
-    addText(this, 44, 132, "青溪镇通水冒险", 22, colors.muted);
-    addText(this, 44, 188, "清溪镇新建了一座会思考的水厂。它要根据山泉、井水、雨水槽的来水，自动调出刚刚好的供水量。\n\n水太少，镇上的水塔会见底；水太多，管道会报警。你的任务是修水路、调水管、写下水路档案，让每一段供水都稳稳贴住黄线。", 18, colors.ink, {
+    this.add.rectangle(W / 2, H / 2, W, H, colors.grassFog);
+    const map = this.add.image(W / 2, H / 2 + 10, "chapterMap");
+    setImageCover(map, W, H + 40);
+    map.setAlpha(0.92);
+    this.add.rectangle(W / 2, H / 2, W, H, 0xffffff, 0.1);
+
+    createSurface(this, 24, 38, 342, 474, { radius: 30, fill: 0xffffff, alpha: 0.9, stroke: colors.skyBorder });
+    createChip(this, "第 1 章 · 线性水路启程", {
+      width: 154,
+      height: 30,
+      fill: colors.bluePale,
+      stroke: 0xffffff,
+      color: colors.blueDark
+    }).setPosition(38, 62);
+    addText(this, 38, 104, "神经水厂", 34, colors.ink, { weight: "900" });
+    addText(this, 40, 148, "青溪镇通水冒险", 20, colors.mutedSoft, { weight: "800" });
+    addText(this, 40, 206, "清溪镇新建了一座会思考的水厂。它会根据山泉、井水、雨水槽的来水，自动调出刚刚好的供水量。", 18, colors.ink, {
       weight: "700",
-      wrap: 296,
+      wrap: 284,
       lineSpacing: 8
     });
-    addText(this, 44, 394, "第 1 章：先学会一条最基础的水路。", 16, colors.blueDark, { weight: "800", wrap: 292 });
+    addText(this, 40, 326, "水太少，镇上的水塔会见底；水太多，管道会报警。你的任务是修水路、调水管、写下水路档案，让每一段供水都稳稳贴住黄线。", 18, colors.ink, {
+      weight: "700",
+      wrap: 284,
+      lineSpacing: 8
+    });
+    addText(this, 40, 452, "先从最基础的一条水路开始，学会 y = wx + b 的直觉。", 15, colors.blueDark, { weight: "900", wrap: 284 });
     createButton(this, "开始冒险", () => this.scene.start("Map"), {
-      width: 306,
-      height: 64,
+      width: 318,
+      height: 62,
       fill: colors.blue,
       stroke: colors.blueDark,
       color: 0xffffff,
       size: 24
-    }).setPosition(42, 520);
+    }).setPosition(36, 558);
     createButton(this, "直接进第一关", () => this.scene.start("Level", { levelIndex: 0 }), {
-      width: 306,
+      width: 318,
       height: 52,
       fill: colors.paper,
-      stroke: colors.line,
+      stroke: colors.skyBorder,
       size: 18
-    }).setPosition(42, 604);
+    }).setPosition(36, 634);
   }
 }
 
@@ -84,11 +100,17 @@ export class MapScene extends Phaser.Scene {
     this.children.removeAll();
     const map = this.add.image(W / 2, H / 2, "chapterMap");
     setImageCover(map, W, H);
-    this.add.rectangle(W / 2, H / 2, W, H, GAME_STATE.mapChapter === 2 ? 0xcdf3ee : 0xffffff, GAME_STATE.mapChapter === 2 ? 0.28 : 0.08);
-    this.add.rectangle(W / 2, 54, W, 108, 0xcbefff, 0.82);
-    addText(this, 20, 24, "神经水厂", 30, colors.ink, { weight: "900" });
-    addText(this, 22, 62, "青溪镇通水冒险", 17, colors.muted, { weight: "700" });
-    createButton(this, "地图", () => {}, { width: 70, height: 54, fill: colors.paper, stroke: 0x94b6d9, size: 20 }).setPosition(300, 25);
+    this.add.rectangle(W / 2, H / 2, W, H, GAME_STATE.mapChapter === 2 ? 0xd5f7ee : 0xffffff, GAME_STATE.mapChapter === 2 ? 0.22 : 0.06);
+    this.add.rectangle(W / 2, 58, W, 116, 0xcbefff, 0.84);
+    addText(this, 20, 20, "神经水厂", 29, colors.ink, { weight: "900" });
+    addText(this, 22, 58, "青溪镇通水冒险", 17, colors.mutedSoft, { weight: "800" });
+    createButton(this, GAME_STATE.mapChapter === 1 ? "第 1 章" : "第 2 章", () => {}, {
+      width: 78,
+      height: 50,
+      fill: colors.paper,
+      stroke: colors.skyBorder,
+      size: 18
+    }).setPosition(292, 26);
 
     if (GAME_STATE.mapChapter === 1) {
       this.renderChapterOneMap();
@@ -108,31 +130,32 @@ export class MapScene extends Phaser.Scene {
       { x: 198, y: 244 }
     ];
 
-    roundedRect(this, 24, 118, 266, 92, 18, 0xffffff, 0.78, 0xffffff, 0);
-    addText(this, 44, 146, "青溪镇地图", 31, colors.ink, { weight: "900" });
-    addText(this, 46, 188, `第 1 章：线性水路 ${passedCount()}/7`, 17, colors.muted, { weight: "800" });
+    createSurface(this, 24, 122, 272, 96, { radius: 20, fill: 0xffffff, alpha: 0.82 });
+    addText(this, 42, 146, "青溪镇地图", 29, colors.ink, { weight: "900" });
+    addText(this, 44, 185, `第 1 章：线性水路 ${passedCount()}/7`, 16, colors.mutedSoft, { weight: "800" });
 
     pathPoints.forEach((point, index) => {
       const unlocked = isLevelUnlocked(index);
       const done = Boolean(GAME_STATE.progress[levels[index].id]);
-      const color = done ? colors.goldDark : unlocked ? colors.blueDark : 0x7b8798;
-      const glow = this.add.circle(point.x, point.y + 2, 18, 0xffffff, 0.4);
+      const color = done ? colors.goldDark : unlocked ? colors.blueDark : 0x96a3b5;
+      const glow = this.add.circle(point.x, point.y + 2, 20, 0xffffff, 0.38);
+      const ring = this.add.circle(point.x, point.y, 24, unlocked ? 0xffffff : 0xf2f5f9, 0.95).setStrokeStyle(4, done ? colors.gold : unlocked ? 0xffffff : 0xd5dce7);
       const label = addText(this, point.x, point.y, String(index + 1), 31, color, {
         weight: "900",
         originX: 0.5,
         originY: 0.5,
         stroke: 0xffffff,
-        strokeThickness: 8
+        strokeThickness: 4
       });
       if (done) {
-        addText(this, point.x, point.y + 24, "已通水", 11, colors.ink, {
+        addText(this, point.x, point.y + 28, "已通水", 11, colors.ink, {
           weight: "900",
           originX: 0.5,
           stroke: 0xffffff,
           strokeThickness: 4
         });
       } else if (!unlocked) {
-        addText(this, point.x, point.y + 24, "未开", 11, colors.ink, {
+        addText(this, point.x, point.y + 28, "未开", 11, colors.ink, {
           weight: "900",
           originX: 0.5,
           stroke: 0xffffff,
@@ -146,34 +169,42 @@ export class MapScene extends Phaser.Scene {
         GAME_STATE.levelIndex = index;
         this.scene.start("Level", { levelIndex: index });
       });
-      this.tweens.add({ targets: [glow, label], alpha: { from: 1, to: 0.72 }, duration: 1200 + index * 70, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+      this.tweens.add({ targets: [glow, ring], alpha: { from: 1, to: 0.72 }, duration: 1200 + index * 70, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     });
 
+    createSurface(this, 18, 764, 354, 62, { radius: 22, fill: 0xffffff, alpha: 0.84, stroke: colors.skyBorder });
     createButton(this, "第 1 章 已解锁", () => {}, {
-      width: 156,
-      height: 44,
+      width: 154,
+      height: 46,
       fill: colors.blue,
       stroke: colors.blueDark,
       color: 0xffffff,
       size: 16
-    }).setPosition(24, 784);
+    }).setPosition(28, 772);
     createButton(this, "去看第 2 章", () => {
       GAME_STATE.mapChapter = 2;
       this.render();
     }, {
-      width: 170,
-      height: 44,
+      width: 160,
+      height: 46,
       fill: colors.paper,
-      stroke: colors.line,
+      stroke: colors.skyBorder,
       color: colors.ink,
       size: 16
-    }).setPosition(196, 784);
+    }).setPosition(192, 772);
   }
 
   renderChapterTwoPreview() {
     this.add.rectangle(W / 2, H / 2, W, H, 0x4dbca7, 0.24);
-    roundedRect(this, 28, 140, 334, 226, 22, 0xffffff, 0.84, 0xb8d1e8, 2);
-    addText(this, 52, 166, "第 2 章：闸门谷", 30, colors.ink, { weight: "900" });
+    createSurface(this, 28, 134, 334, 242, { radius: 24, fill: 0xffffff, alpha: 0.86 });
+    createChip(this, "下一章预告", {
+      width: 92,
+      height: 28,
+      fill: colors.bluePale,
+      stroke: 0xffffff,
+      color: colors.blueDark
+    }).setPosition(48, 156);
+    addText(this, 48, 192, "第 2 章：闸门谷", 30, colors.ink, { weight: "900" });
     addText(this, 54, 214, "下一章会把“线性水路”接到各种闸门：有的闸门挡住负水位，有的闸门会把水压进固定范围，最后再进入多出口分流。", 18, colors.muted, {
       weight: "800",
       wrap: 280,
@@ -185,30 +216,31 @@ export class MapScene extends Phaser.Scene {
       this.add.circle(74, y + 18, 20, 0xffffff, 0.96).setStrokeStyle(4, colors.gold);
       addText(this, 74, y + 18, String(index + 1), 18, colors.blueDark, { originX: 0.5, originY: 0.5, weight: "900" });
       addText(this, 112, y + 6, name, 20, colors.ink, { weight: "900" });
-      addText(this, 112, y + 31, "设计中", 14, colors.muted, { weight: "800" });
+      addText(this, 112, y + 31, "设计中", 14, colors.mutedSoft, { weight: "800" });
     });
+    createSurface(this, 18, 754, 354, 72, { radius: 22, fill: 0xffffff, alpha: 0.84, stroke: colors.skyBorder });
     createButton(this, "回第 1 章", () => {
       GAME_STATE.mapChapter = 1;
       this.render();
     }, {
       width: 156,
-      height: 52,
+      height: 48,
       fill: colors.paper,
-      stroke: colors.line,
+      stroke: colors.skyBorder,
       color: colors.ink,
       size: 17
-    }).setPosition(28, 768);
+    }).setPosition(28, 766);
     createButton(this, "先玩线性水路", () => {
       GAME_STATE.mapChapter = 1;
       this.scene.start("Level", { levelIndex: 0 });
     }, {
       width: 162,
-      height: 52,
+      height: 48,
       fill: colors.blue,
       stroke: colors.blueDark,
       color: 0xffffff,
       size: 17
-    }).setPosition(200, 768);
+    }).setPosition(198, 766);
   }
 }
 
@@ -250,39 +282,52 @@ export class LevelScene extends Phaser.Scene {
   }
 
   drawHeader() {
-    this.add.rectangle(W / 2, 48, W, 96, 0xccefff, 0.9);
-    addText(this, 18, 14, "神经水厂", 25, colors.ink, { weight: "900" });
-    addText(this, 20, 48, "第 1 章 · 线性水路", 14, colors.muted, { weight: "800" });
+    this.add.rectangle(W / 2, 50, W, 100, 0xccefff, 0.92);
+    addText(this, 18, 16, "神经水厂", 24, colors.ink, { weight: "900" });
+    addText(this, 20, 48, "第 1 章 · 线性水路", 14, colors.mutedSoft, { weight: "800" });
     createButton(this, "地图", () => this.scene.start("Map"), {
       width: 66,
       height: 50,
       fill: colors.paper,
-      stroke: 0x98b8d8,
+      stroke: colors.skyBorder,
       size: 18
     }).setPosition(304, 17);
     const unlocked = levels.filter((_, index) => isLevelUnlocked(index)).length;
-    addText(this, 226, 24, `${this.levelIndex + 1}/7`, 24, colors.ink, { weight: "900", originX: 0.5 });
-    addText(this, 226, 54, `已开 ${unlocked}`, 13, colors.muted, { weight: "800", originX: 0.5 });
+    createChip(this, `${this.levelIndex + 1}/7`, {
+      width: 78,
+      height: 36,
+      fill: 0xffffff,
+      stroke: colors.skyBorder,
+      size: 22,
+      color: colors.ink
+    }).setPosition(186, 18);
+    addText(this, 226, 57, `已开 ${unlocked}`, 12, colors.mutedSoft, { weight: "800", originX: 0.5 });
   }
 
   drawBoard() {
-    const top = 92;
-    const height = 530;
-    roundedRect(this, 10, top, 370, height, 18, colors.panel, 0.98, 0xbfd3ec, 2);
-    const playTop = top + 112;
-    const playHeight = height - 116;
+    const top = 102;
+    const height = 512;
+    createSurface(this, 10, top, 370, height, { radius: 24, fill: colors.panel, alpha: 0.98, stroke: colors.skyBorder });
+    const playTop = top + 118;
+    const playHeight = height - 122;
     const image = this.add.image(W / 2, playTop + playHeight / 2, "boardBg");
     image.setDisplaySize(370, playHeight);
-    image.setAlpha(0.76);
+    image.setAlpha(0.82);
     const maskShape = this.make.graphics({ x: 0, y: 0, add: false });
     maskShape.fillStyle(0xffffff);
-    maskShape.fillRoundedRect(10, playTop, 370, playHeight, 18);
+    maskShape.fillRoundedRect(10, playTop, 370, playHeight, 24);
     image.setMask(maskShape.createGeometryMask());
-    roundedRect(this, 10, playTop, 370, playHeight, 18, 0xfff4dc, 0.14);
+    roundedRect(this, 10, playTop, 370, playHeight, 24, 0xfff4dc, 0.1);
 
-    addText(this, 24, top + 16, `第 ${this.levelIndex + 1} 关`, 15, colors.blueDark, { weight: "900" });
-    addText(this, 24, top + 38, this.level.title, 25, colors.ink, { weight: "900" });
-    addText(this, 24, top + 72, this.level.objective, 16, colors.muted, { weight: "800", wrap: 332 });
+    createChip(this, `第 ${this.levelIndex + 1} 关`, {
+      width: 72,
+      height: 28,
+      fill: colors.bluePale,
+      stroke: 0xffffff,
+      color: colors.blueDark
+    }).setPosition(24, top + 16);
+    addText(this, 24, top + 48, this.level.title, 24, colors.ink, { weight: "900" });
+    addText(this, 24, top + 80, this.level.objective, 14, colors.mutedSoft, { weight: "800", wrap: 332, lineSpacing: 5 });
 
     if (this.level.samples.length > 1) {
       this.level.samples.forEach((sample, index) => {
@@ -290,18 +335,18 @@ export class LevelScene extends Phaser.Scene {
           this.sampleIndex = index;
           this.render();
         }, {
-          width: 66,
+          width: 68,
           height: 30,
           fill: index === this.sampleIndex ? colors.gold : colors.paper,
           stroke: index === this.sampleIndex ? colors.goldDark : colors.line,
           color: index === this.sampleIndex ? 0xffffff : colors.ink,
           size: 13,
           radius: 12
-        }).setPosition(24 + index * 78, top + 112);
+        }).setPosition(24 + index * 80, top + 108);
       });
     }
 
-    const baseY = this.level.samples.length > 1 ? top + 182 : top + 170;
+    const baseY = this.level.samples.length > 1 ? top + 178 : top + 174;
     const inputYs = this.sample.inputs.length === 1 ? [baseY + 82] : [baseY + 42, baseY + 158];
     const sourceX = 72;
     this.sample.inputs.forEach((value, index) => {
@@ -314,7 +359,7 @@ export class LevelScene extends Phaser.Scene {
         stroke: colors.ink,
         strokeThickness: 5
       });
-      addText(this, sourceX, y + 69, `流量 ${fmt(value)}`, 15, 0xffffff, {
+      addText(this, sourceX, y + 69, `流量 ${fmt(value)}`, 14, 0xffffff, {
         weight: "900",
         originX: 0.5,
         stroke: colors.muted,
@@ -367,7 +412,7 @@ export class LevelScene extends Phaser.Scene {
     drawPath(g, townPath, 13, colors.pipeRim, 1);
     drawPath(g, townPath, 7, colors.water, 1);
     if (this.row.y > 0.02) makeFlow(this, townPath, colors.waterLight, false, 4, 0.2);
-    addText(this, 324, baseY - 5, "清溪镇水厂", 13, 0xffffff, { weight: "900", originX: 0.5, stroke: colors.ink, strokeThickness: 4 });
+    addText(this, 324, baseY - 6, "清溪镇水厂", 12, 0xffffff, { weight: "900", originX: 0.5, stroke: colors.ink, strokeThickness: 4 });
   }
 
   drawPipes(inputYs, poolX, poolY) {
@@ -510,10 +555,19 @@ export class SummaryScene extends Phaser.Scene {
   create() {
     ensureRexUI(this);
     this.cameras.main.setBackgroundColor("#dff3db");
-    this.add.image(W / 2, H / 2, "chapterMap").setDisplaySize(390, 844).setAlpha(0.28);
-    roundedRect(this, 24, 58, 342, 696, 24, 0xffffff, 0.94, 0xbfd3ec, 2);
-    addText(this, 48, 88, "第 1 章水路档案", 30, colors.ink, { weight: "900" });
-    addText(this, 50, 136, "你刚刚学会的，其实就是一条线性水路。", 18, colors.muted, { weight: "800", wrap: 288 });
+    const map = this.add.image(W / 2, H / 2, "chapterMap");
+    setImageCover(map, W, H);
+    map.setAlpha(0.28);
+    createSurface(this, 24, 42, 342, 748, { radius: 28, fill: 0xffffff, alpha: 0.94, stroke: colors.skyBorder });
+    createChip(this, "通关档案", {
+      width: 92,
+      height: 28,
+      fill: colors.bluePale,
+      stroke: 0xffffff,
+      color: colors.blueDark
+    }).setPosition(48, 66);
+    addText(this, 48, 102, "第 1 章水路档案", 30, colors.ink, { weight: "900" });
+    addText(this, 48, 146, "你刚刚学会的，其实就是一条线性水路。", 18, colors.mutedSoft, { weight: "800", wrap: 288 });
     const lines = [
       ["一处水源", "供水量 = 来水量 × 管道粗细"],
       ["加上泵站", "供水量 = 来水量 × 管道粗细 + 泵站水压"],
@@ -521,23 +575,24 @@ export class SummaryScene extends Phaser.Scene {
       ["大学写法", "y = Xw + b"]
     ];
     lines.forEach((item, index) => {
-      const y = 210 + index * 106;
-      roundedRect(this, 46, y, 298, 78, 16, index === 3 ? 0xe9f5ff : 0xfffbef, 1, 0xd4e1ef, 2);
-      addText(this, 64, y + 13, item[0], 16, colors.blueDark, { weight: "900" });
+      const y = 212 + index * 108;
+      createSurface(this, 46, y, 298, 82, { radius: 18, fill: index === 3 ? 0xe9f5ff : 0xfffbef, alpha: 1, stroke: 0xd4e1ef, shadowAlpha: 0.09 });
+      addText(this, 64, y + 14, item[0], 15, colors.blueDark, { weight: "900" });
       addText(this, 64, y + 40, item[1], index === 3 ? 22 : 17, colors.ink, { weight: "900", wrap: 250 });
     });
-    addText(this, 48, 662, "下一章会加入闸门：水不是直接流过去，而是先经过会改变水量的机关。这就是激活函数的直觉。", 16, colors.muted, {
+    addText(this, 48, 658, "下一章会加入闸门：水不是直接流过去，而是先经过会改变水量的机关。这就是激活函数的直觉。", 16, colors.mutedSoft, {
       weight: "800",
       wrap: 292,
       lineSpacing: 6
     });
+    createSurface(this, 34, 732, 322, 66, { radius: 22, fill: colors.paperSoft, alpha: 0.9, stroke: colors.skyBorder, shadowAlpha: 0.08 });
     createButton(this, "回地图", () => this.scene.start("Map"), {
       width: 142,
       height: 48,
       fill: colors.paper,
-      stroke: colors.line,
+      stroke: colors.skyBorder,
       size: 18
-    }).setPosition(44, 774);
+    }).setPosition(44, 741);
     createButton(this, "看第 2 章", () => {
       GAME_STATE.mapChapter = 2;
       this.scene.start("Map");
@@ -548,6 +603,6 @@ export class SummaryScene extends Phaser.Scene {
       stroke: colors.blueDark,
       color: 0xffffff,
       size: 18
-    }).setPosition(202, 774);
+    }).setPosition(202, 741);
   }
 }
