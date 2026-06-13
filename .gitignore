@@ -1,3 +1,16 @@
 node_modules
 dist
 .DS_Store
+
+# Cocos Creator generated folders
+cocos-neural-pipe/library/
+cocos-neural-pipe/temp/
+cocos-neural-pipe/local/
+cocos-neural-pipe/build/
+cocos-neural-pipe/profiles/
+cocos-neural-pipe/node_modules/
+cocos-neural-pipe/native/
+cocos-neural-pipe/.creator/
+cocos-neural-pipe/.vscode/
+cocos-neural-pipe/.idea/
+cocos-neural-pipe/.DS_Store
