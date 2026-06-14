@@ -1,6 +1,4 @@
 import { _decorator, Color, Component, Graphics, Label, Node, UITransform, Vec3 } from "cc";
-import { goToScene, SceneNames } from "../app/SceneRouter";
-
 const { ccclass } = _decorator;
 
 @ccclass("HomeController")
@@ -10,16 +8,11 @@ export class HomeController extends Component {
   }
 
   startGame(): void {
-    goToScene(SceneNames.map);
+    this.buildPrototypeMap();
   }
 
   private buildPrototypeHome(): void {
-    this.node.getChildByName("HomeContent")?.destroy();
-    const content = new Node("HomeContent");
-    content.layer = this.node.layer;
-    content.addComponent(UITransform).setContentSize(1080, 1920);
-    this.node.addChild(content);
-
+    const content = this.createContentLayer();
     content.addChild(this.createRect("Background", 0, 0, 1080, 1920, new Color(230, 246, 255, 255)));
     content.addChild(this.createRect("StoryPanel", 0, -70, 900, 760, new Color(255, 255, 255, 235), new Color(142, 190, 230, 255)));
     content.addChild(this.createLabel("神经水厂", 0, 570, 86, new Color(36, 48, 74, 255)));
@@ -27,6 +20,25 @@ export class HomeController extends Component {
     content.addChild(this.createLabel("清溪镇新建了一座会思考的水厂。", 0, 180, 46, new Color(36, 48, 74, 255), 780));
     content.addChild(this.createLabel("你要接管、调管、开泵，让供水池稳稳贴住黄线。第一章只做一件事：用水路直觉理解 y = wx + b。", 0, 40, 34, new Color(82, 96, 122, 255), 780));
     content.addChild(this.createButton("StartButton", 0, -610, 760, 130, "开始冒险", () => this.startGame()));
+  }
+
+  private buildPrototypeMap(): void {
+    const content = this.createContentLayer();
+    content.addChild(this.createRect("Background", 0, 0, 1080, 1920, new Color(230, 246, 255, 255)));
+    content.addChild(this.createLabel("青溪镇地图", 0, 560, 82, new Color(36, 48, 74, 255)));
+    content.addChild(this.createLabel("第 1 章：线性水路", 0, 460, 40, new Color(102, 114, 138, 255)));
+    content.addChild(this.createRect("MapPanel", 0, -20, 860, 820, new Color(255, 255, 255, 235), new Color(142, 190, 230, 255)));
+    content.addChild(this.createLabel("地图页已接通。下一步我们会把 7 个关卡点放到这里。", 0, 90, 38, new Color(82, 96, 122, 255), 720));
+    content.addChild(this.createButton("BackButton", 0, -610, 760, 130, "返回首页", () => this.buildPrototypeHome()));
+  }
+
+  private createContentLayer(): Node {
+    this.node.getChildByName("HomeContent")?.destroy();
+    const content = new Node("HomeContent");
+    content.layer = this.node.layer;
+    content.addComponent(UITransform).setContentSize(1080, 1920);
+    this.node.addChild(content);
+    return content;
   }
 
   private createRect(name: string, x: number, y: number, width: number, height: number, fill: Color, stroke?: Color): Node {
