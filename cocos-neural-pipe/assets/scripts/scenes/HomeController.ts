@@ -31,17 +31,20 @@ export class HomeController extends Component {
     content.addChild(this.createRect("Background", 0, 0, 1080, 1920, new Color(230, 246, 255, 255)));
     content.addChild(this.createLabel("青溪镇地图", 0, 760, 78, new Color(36, 48, 74, 255)));
     content.addChild(this.createLabel("第 1 章：线性水路", 0, 670, 40, new Color(102, 114, 138, 255)));
-    content.addChild(this.createRect("MapPanel", 0, 10, 900, 1200, new Color(255, 255, 255, 232), new Color(142, 190, 230, 255)));
-    content.addChild(this.createLabel("沿着水路依次修复 7 个站点。先从山泉开始。", 0, 560, 34, new Color(82, 96, 122, 255), 760));
+    content.addChild(this.createRect("MapPanel", 0, -40, 900, 1110, new Color(244, 252, 242, 245), new Color(142, 190, 230, 255)));
+    content.addChild(this.createMapBackdrop());
+    content.addChild(this.createRect("MapIntro", 0, 475, 760, 120, new Color(255, 255, 255, 225), new Color(210, 232, 247, 255)));
+    content.addChild(this.createLabel("沿着水路依次修复 7 个站点", 0, 502, 32, new Color(36, 48, 74, 255), 700));
+    content.addChild(this.createLabel("先从山泉开始。", 0, 462, 28, new Color(82, 96, 122, 255), 700));
 
     const positions = [
-      new Vec3(-290, -430, 0),
-      new Vec3(-70, -300, 0),
-      new Vec3(240, -170, 0),
-      new Vec3(60, -10, 0),
-      new Vec3(-230, 155, 0),
-      new Vec3(70, 330, 0),
-      new Vec3(300, 505, 0)
+      new Vec3(-290, -420, 0),
+      new Vec3(-60, -300, 0),
+      new Vec3(260, -190, 0),
+      new Vec3(90, -35, 0),
+      new Vec3(-220, 125, 0),
+      new Vec3(70, 280, 0),
+      new Vec3(310, 380, 0)
     ];
 
     chapterOneLevels.forEach((level, index) => {
@@ -137,6 +140,48 @@ export class HomeController extends Component {
     const labelNode = this.createLabel(caption, width / 2, height / 2, 44, new Color(255, 255, 255, 255), width);
     node.addChild(labelNode);
     node.on(Node.EventType.TOUCH_END, onClick, this);
+    return node;
+  }
+
+  private createMapBackdrop(): Node {
+    const node = new Node("MapBackdrop");
+    node.layer = this.node.layer;
+    node.addComponent(UITransform).setContentSize(900, 1110);
+    const graphics = node.addComponent(Graphics);
+
+    graphics.fillColor = new Color(189, 231, 250, 255);
+    graphics.roundRect(-410, -510, 220, 1020, 80);
+    graphics.roundRect(260, -500, 150, 990, 70);
+    graphics.fill();
+
+    graphics.fillColor = new Color(204, 236, 190, 255);
+    graphics.roundRect(-360, -470, 470, 430, 90);
+    graphics.roundRect(-300, 40, 520, 440, 90);
+    graphics.roundRect(120, -400, 300, 380, 80);
+    graphics.fill();
+
+    graphics.strokeColor = new Color(236, 199, 129, 255);
+    graphics.lineWidth = 28;
+    graphics.moveTo(-290, -420);
+    graphics.bezierCurveTo(-185, -380, -150, -315, -60, -300);
+    graphics.bezierCurveTo(90, -275, 170, -220, 260, -190);
+    graphics.bezierCurveTo(210, -120, 160, -80, 90, -35);
+    graphics.bezierCurveTo(-30, 40, -130, 80, -220, 125);
+    graphics.bezierCurveTo(-90, 195, -20, 240, 70, 280);
+    graphics.bezierCurveTo(165, 325, 235, 360, 310, 380);
+    graphics.stroke();
+
+    graphics.strokeColor = new Color(255, 243, 204, 255);
+    graphics.lineWidth = 14;
+    graphics.moveTo(-290, -420);
+    graphics.bezierCurveTo(-185, -380, -150, -315, -60, -300);
+    graphics.bezierCurveTo(90, -275, 170, -220, 260, -190);
+    graphics.bezierCurveTo(210, -120, 160, -80, 90, -35);
+    graphics.bezierCurveTo(-30, 40, -130, 80, -220, 125);
+    graphics.bezierCurveTo(-90, 195, -20, 240, 70, 280);
+    graphics.bezierCurveTo(165, 325, 235, 360, 310, 380);
+    graphics.stroke();
+
     return node;
   }
 
