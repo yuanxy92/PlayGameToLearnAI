@@ -1,0 +1,386 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>关卡圆心标注工具</title>
+  <style>
+    :root {
+      --stage-w: 780;
+      --stage-h: 1365;
+      --stage-y: -80;
+      --blue: #2f8ee8;
+      --ink: #23304a;
+      --muted: #68758e;
+      --line: #c8ddf0;
+      --paper: #f7fbff;
+      --panel: #ffffff;
+      --accent: #ffb12a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #e6f6ff;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(320px, 1fr) 380px;
+      gap: 18px;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .map-shell,
+    .side {
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid var(--line);
+      border-radius: 22px;
+      box-shadow: 0 18px 50px rgba(44, 94, 140, 0.12);
+    }
+
+    .map-shell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .map {
+      position: relative;
+      width: min(780px, calc(100vw - 460px));
+      aspect-ratio: 888 / 1771;
+      min-width: 320px;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .map img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 10px;
+      pointer-events: none;
+    }
+
+    .marker {
+      position: absolute;
+      width: 54px;
+      height: 54px;
+      border: 5px solid var(--accent);
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.9);
+      color: #1f6eb6;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      font-weight: 800;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 8px 18px rgba(44, 94, 140, 0.24);
+      cursor: grab;
+    }
+
+    .marker:active {
+      cursor: grabbing;
+      transform: translate(-50%, -50%) scale(1.06);
+    }
+
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      background: #eef7ff;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 13px 14px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: inset 0 -3px rgba(24, 94, 168, 0.35);
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--ink);
+      border: 2px solid var(--line);
+      box-shadow: none;
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 235px;
+      resize: vertical;
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      color: #1c2940;
+      background: var(--paper);
+      font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    .list {
+      display: grid;
+      gap: 8px;
+      font: 13px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      color: var(--muted);
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 7px 9px;
+      background: #f4f8fc;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 860px) {
+      .app {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+
+      .map {
+        width: min(92vw, 560px);
+      }
+
+      .side {
+        order: -1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="map-shell">
+      <div class="map" id="map">
+        <img src="../cocos-neural-pipe/assets/resources/art/chapter1-map-bg.png" alt="青溪镇地图">
+      </div>
+    </section>
+
+    <aside class="side">
+      <div>
+        <h1>关卡圆心标注</h1>
+        <p>按第 1 关到第 7 关的顺序，点击地图上每个台子的中心。点错了可以拖动圆点，或撤销重来。</p>
+      </div>
+
+      <div class="step">
+        <span id="stepText">请标第 1 关</span>
+        <span id="countText">0 / 7</span>
+      </div>
+
+      <div class="actions">
+        <button id="undoBtn" class="secondary">撤销</button>
+        <button id="clearBtn" class="secondary">清空</button>
+        <button id="copyBtn">复制代码</button>
+        <button id="copyJsonBtn">复制 JSON</button>
+      </div>
+
+      <textarea id="output" readonly></textarea>
+      <p id="copyHint">如果复制被浏览器拦截，工具会自动选中文本；按 Cmd+C 即可。</p>
+      <div class="list" id="pointList"></div>
+    </aside>
+  </main>
+
+  <script>
+    const IMAGE_WIDTH = 888;
+    const IMAGE_HEIGHT = 1771;
+    const COCOS_WIDTH = 780;
+    const COCOS_HEIGHT = 1365;
+    const COCOS_CENTER_Y = -80;
+    const MAX_POINTS = 7;
+
+    const map = document.getElementById("map");
+    const output = document.getElementById("output");
+    const pointList = document.getElementById("pointList");
+    const stepText = document.getElementById("stepText");
+    const countText = document.getElementById("countText");
+    const undoBtn = document.getElementById("undoBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const copyJsonBtn = document.getElementById("copyJsonBtn");
+    const copyHint = document.getElementById("copyHint");
+    const STORAGE_KEY = "neural-pipe-map-annotations-v1";
+
+    let points = loadPoints();
+    let draggingIndex = null;
+
+    function imagePointFromEvent(event) {
+      const rect = map.getBoundingClientRect();
+      const x = Math.max(0, Math.min(rect.width, event.clientX - rect.left));
+      const y = Math.max(0, Math.min(rect.height, event.clientY - rect.top));
+      return {
+        x,
+        y,
+        imageX: x / rect.width * IMAGE_WIDTH,
+        imageY: y / rect.height * IMAGE_HEIGHT
+      };
+    }
+
+    function toCocos(point) {
+      return {
+        x: Math.round((point.imageX / IMAGE_WIDTH - 0.5) * COCOS_WIDTH),
+        y: Math.round(COCOS_CENTER_Y + (0.5 - point.imageY / IMAGE_HEIGHT) * COCOS_HEIGHT)
+      };
+    }
+
+    function loadPoints() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+        if (!Array.isArray(saved)) return [];
+        return saved
+          .filter((point) => Number.isFinite(point.imageX) && Number.isFinite(point.imageY))
+          .slice(0, MAX_POINTS);
+      } catch {
+        return [];
+      }
+    }
+
+    function savePoints() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(points));
+    }
+
+    function getJsonText() {
+      const payload = points.map((point, index) => ({ level: index + 1, ...toCocos(point) }));
+      return JSON.stringify(payload, null, 2);
+    }
+
+    async function copyText(text, button, fallbackTarget = output) {
+      try {
+        if (!navigator.clipboard || !window.isSecureContext) {
+          throw new Error("Clipboard API is unavailable.");
+        }
+        await navigator.clipboard.writeText(text);
+        button.textContent = "已复制";
+        copyHint.textContent = "已经复制到剪贴板。";
+      } catch {
+        fallbackTarget.value = text;
+        fallbackTarget.focus();
+        fallbackTarget.select();
+        document.execCommand("copy");
+        button.textContent = "已选中";
+        copyHint.textContent = "如果没有自动复制，请直接按 Cmd+C。";
+      }
+      setTimeout(() => {
+        button.textContent = button === copyBtn ? "复制代码" : "复制 JSON";
+      }, 900);
+    }
+
+    function render() {
+      savePoints();
+      map.querySelectorAll(".marker").forEach((node) => node.remove());
+      const rect = map.getBoundingClientRect();
+
+      points.forEach((point, index) => {
+        const marker = document.createElement("div");
+        marker.className = "marker";
+        marker.textContent = String(index + 1);
+        marker.style.left = `${point.imageX / IMAGE_WIDTH * rect.width}px`;
+        marker.style.top = `${point.imageY / IMAGE_HEIGHT * rect.height}px`;
+        marker.addEventListener("pointerdown", (event) => {
+          event.stopPropagation();
+          draggingIndex = index;
+          marker.setPointerCapture(event.pointerId);
+        });
+        map.appendChild(marker);
+      });
+
+      const cocosPoints = points.map(toCocos);
+      output.value = `const positions = [\n${cocosPoints.map((p) => `  new Vec3(${p.x}, ${p.y}, 0)`).join(",\n")}\n];`;
+      pointList.innerHTML = cocosPoints.map((p, index) => (
+        `<div class="row"><span>${index + 1}</span><span>x ${p.x}, y ${p.y}</span></div>`
+      )).join("");
+      stepText.textContent = points.length < MAX_POINTS ? `请标第 ${points.length + 1} 关` : "7 个点已标完";
+      countText.textContent = `${points.length} / ${MAX_POINTS}`;
+      undoBtn.disabled = points.length === 0;
+      copyBtn.disabled = points.length !== MAX_POINTS;
+      copyJsonBtn.disabled = points.length !== MAX_POINTS;
+    }
+
+    map.addEventListener("pointerdown", (event) => {
+      if (points.length >= MAX_POINTS) return;
+      points.push(imagePointFromEvent(event));
+      render();
+    });
+
+    window.addEventListener("pointermove", (event) => {
+      if (draggingIndex === null) return;
+      points[draggingIndex] = imagePointFromEvent(event);
+      render();
+    });
+
+    window.addEventListener("pointerup", () => {
+      draggingIndex = null;
+    });
+
+    undoBtn.addEventListener("click", () => {
+      points.pop();
+      render();
+    });
+
+    clearBtn.addEventListener("click", () => {
+      points = [];
+      render();
+    });
+
+    copyBtn.addEventListener("click", async () => {
+      await copyText(output.value, copyBtn);
+    });
+
+    copyJsonBtn.addEventListener("click", async () => {
+      await copyText(getJsonText(), copyJsonBtn);
+    });
+
+    window.addEventListener("resize", render);
+    render();
+  </script>
+</body>
+</html>
