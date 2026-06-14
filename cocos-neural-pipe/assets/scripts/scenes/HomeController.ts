@@ -1,9 +1,13 @@
 import { _decorator, Color, Component, Graphics, Label, Node, UITransform, Vec3 } from "cc";
+import { gameState } from "../app/GameState";
+import { chapterOneLevels } from "../data/ChapterOneLevels";
+
 const { ccclass } = _decorator;
 
 @ccclass("HomeController")
 export class HomeController extends Component {
   start(): void {
+    gameState.load();
     this.buildPrototypeHome();
   }
 
@@ -25,11 +29,51 @@ export class HomeController extends Component {
   private buildPrototypeMap(): void {
     const content = this.createContentLayer();
     content.addChild(this.createRect("Background", 0, 0, 1080, 1920, new Color(230, 246, 255, 255)));
-    content.addChild(this.createLabel("青溪镇地图", 0, 560, 82, new Color(36, 48, 74, 255)));
-    content.addChild(this.createLabel("第 1 章：线性水路", 0, 460, 40, new Color(102, 114, 138, 255)));
-    content.addChild(this.createRect("MapPanel", 0, -20, 860, 820, new Color(255, 255, 255, 235), new Color(142, 190, 230, 255)));
-    content.addChild(this.createLabel("地图页已接通。下一步我们会把 7 个关卡点放到这里。", 0, 90, 38, new Color(82, 96, 122, 255), 720));
-    content.addChild(this.createButton("BackButton", 0, -610, 760, 130, "返回首页", () => this.buildPrototypeHome()));
+    content.addChild(this.createLabel("青溪镇地图", 0, 760, 78, new Color(36, 48, 74, 255)));
+    content.addChild(this.createLabel("第 1 章：线性水路", 0, 670, 40, new Color(102, 114, 138, 255)));
+    content.addChild(this.createRect("MapPanel", 0, 10, 900, 1200, new Color(255, 255, 255, 232), new Color(142, 190, 230, 255)));
+    content.addChild(this.createLabel("沿着水路依次修复 7 个站点。先从山泉开始。", 0, 560, 34, new Color(82, 96, 122, 255), 760));
+
+    const positions = [
+      new Vec3(-290, -430, 0),
+      new Vec3(-70, -300, 0),
+      new Vec3(240, -170, 0),
+      new Vec3(60, -10, 0),
+      new Vec3(-230, 155, 0),
+      new Vec3(70, 330, 0),
+      new Vec3(300, 505, 0)
+    ];
+
+    chapterOneLevels.forEach((level, index) => {
+      const unlocked = index === 0 || gameState.isLevelPassed(chapterOneLevels[index - 1].id);
+      const passed = gameState.isLevelPassed(level.id);
+      content.addChild(this.createLevelDisk(level.index, positions[index], unlocked, passed, () => {
+        if (unlocked) {
+          this.buildLevelBrief(index);
+        } else {
+          this.buildPrototypeMap();
+        }
+      }));
+    });
+
+    content.addChild(this.createButton("BackButton", 0, -780, 760, 120, "返回首页", () => this.buildPrototypeHome()));
+  }
+
+  private buildLevelBrief(levelIndex: number): void {
+    const level = chapterOneLevels[levelIndex];
+    gameState.currentLevelIndex = levelIndex;
+
+    const content = this.createContentLayer();
+    content.addChild(this.createRect("Background", 0, 0, 1080, 1920, new Color(230, 246, 255, 255)));
+    content.addChild(this.createLabel(`第 ${level.index} 关`, 0, 760, 42, new Color(32, 118, 190, 255)));
+    content.addChild(this.createLabel(level.title, 0, 660, 78, new Color(36, 48, 74, 255)));
+    content.addChild(this.createRect("BriefPanel", 0, 40, 900, 1040, new Color(255, 255, 255, 235), new Color(142, 190, 230, 255)));
+    content.addChild(this.createLabel(level.objective, 0, 330, 42, new Color(36, 48, 74, 255), 760));
+    content.addChild(this.createLabel(level.concept, 0, 130, 36, new Color(82, 96, 122, 255), 760));
+    content.addChild(this.createLabel(`水源：${level.inputNames.join("、")}`, 0, -40, 34, new Color(82, 96, 122, 255), 760));
+    content.addChild(this.createLabel("真正的修水路玩法下一步接入。", 0, -210, 34, new Color(32, 118, 190, 255), 760));
+    content.addChild(this.createButton("StartLevelButton", 0, -610, 760, 120, "进入本关", () => this.buildPrototypeMap()));
+    content.addChild(this.createButton("BackToMapButton", 0, -780, 760, 120, "返回地图", () => this.buildPrototypeMap()));
   }
 
   private createContentLayer(): Node {
@@ -92,6 +136,31 @@ export class HomeController extends Component {
     const node = this.createRect(name, x, y, width, height, new Color(47, 142, 232, 255), new Color(30, 102, 181, 255));
     const labelNode = this.createLabel(caption, width / 2, height / 2, 44, new Color(255, 255, 255, 255), width);
     node.addChild(labelNode);
+    node.on(Node.EventType.TOUCH_END, onClick, this);
+    return node;
+  }
+
+  private createLevelDisk(index: number, position: Vec3, unlocked: boolean, passed: boolean, onClick: () => void): Node {
+    const node = new Node(`Level${index}`);
+    node.layer = this.node.layer;
+    node.setPosition(position);
+    node.addComponent(UITransform).setContentSize(150, 190);
+
+    const disk = new Node(`LevelDisk${index}`);
+    disk.layer = this.node.layer;
+    disk.addComponent(UITransform).setContentSize(132, 132);
+    const graphics = disk.addComponent(Graphics);
+    graphics.fillColor = unlocked ? new Color(255, 255, 255, 255) : new Color(232, 238, 246, 255);
+    graphics.circle(0, 34, 66);
+    graphics.fill();
+    graphics.strokeColor = passed ? new Color(47, 142, 232, 255) : unlocked ? new Color(255, 177, 42, 255) : new Color(164, 177, 196, 255);
+    graphics.lineWidth = 12;
+    graphics.circle(0, 34, 66);
+    graphics.stroke();
+    node.addChild(disk);
+
+    node.addChild(this.createLabel(String(index), 0, 34, 54, unlocked ? new Color(32, 118, 190, 255) : new Color(142, 154, 174, 255), 120));
+    node.addChild(this.createLabel(passed ? "已通水" : unlocked ? "可进入" : "未开", 0, -72, 28, new Color(82, 96, 122, 255), 140));
     node.on(Node.EventType.TOUCH_END, onClick, this);
     return node;
   }
