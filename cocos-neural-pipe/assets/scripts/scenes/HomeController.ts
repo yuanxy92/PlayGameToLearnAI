@@ -103,7 +103,8 @@ export class HomeController extends Component {
     content.addChild(this.createLabel(level.title, 0, 735, 68, new Color(36, 48, 74, 255), 840));
     content.addChild(this.createLabel(level.objective, 0, 650, 30, new Color(82, 96, 122, 255), 860));
 
-    content.addChild(this.createRect("PlayField", 0, 210, 900, 720, new Color(250, 248, 236, 255), new Color(142, 190, 230, 255)));
+    content.addChild(this.createRect("PlayField", 0, 245, 900, 640, new Color(250, 248, 236, 255), new Color(142, 190, 230, 255)));
+    content.addChild(this.createLevelArt());
     content.addChild(this.createWaterDiagram(level, firstResult.y, firstSample.target));
 
     const status = waterStatus(firstResult.y, firstSample.target);
@@ -125,52 +126,71 @@ export class HomeController extends Component {
     node.addComponent(UITransform).setContentSize(900, 720);
     const graphics = node.addComponent(Graphics);
 
-    const inputYStart = 420;
+    const inputYStart = 292;
     level.inputNames.forEach((name, index) => {
-      const y = inputYStart - index * 155;
-      node.addChild(this.createPoolNode(name, `流量 ${this.formatNumber(level.samples[0].inputs[index] ?? 0)}`, -310, y));
+      const y = inputYStart - index * 120;
+      node.addChild(this.createSceneLabel(name, `流量 ${this.formatNumber(level.samples[0].inputs[index] ?? 0)}`, -330, y));
     });
-    node.addChild(this.createPoolNode("合流池", "汇在这里", 0, 205));
-    node.addChild(this.createPoolNode("供水池", waterStatus(output, target), 310, 205));
+    node.addChild(this.createSceneLabel("合流池", "汇在这里", -5, 190));
+    node.addChild(this.createSceneLabel("供水池", waterStatus(output, target), 318, 200));
 
     level.pipes.forEach((pipe, index) => {
-      const fromY = inputYStart - pipe.input * 155 - 315;
-      const mergeY = 205 - 315;
+      const fromY = inputYStart - pipe.input * 120 - 145;
+      const mergeY = 105 + index * 14;
       const color = !pipe.installed
         ? new Color(186, 196, 210, 190)
         : pipe.type === "pump"
           ? new Color(239, 92, 92, 220)
           : new Color(65, 177, 125, 220);
       graphics.strokeColor = color;
-      graphics.lineWidth = Math.max(10, 18 + pipe.strength * 16);
-      graphics.moveTo(-230, fromY);
-      graphics.bezierCurveTo(-160, fromY + 20, -110, mergeY + index * 22, -75, mergeY);
+      graphics.lineWidth = Math.max(8, 10 + pipe.strength * 14);
+      graphics.moveTo(-235, fromY);
+      graphics.bezierCurveTo(-165, fromY + 10, -125, mergeY + 20, -80, mergeY);
       graphics.stroke();
     });
 
     graphics.strokeColor = new Color(67, 166, 232, 230);
-    graphics.lineWidth = 24;
-    graphics.moveTo(75, 205 - 315);
-    graphics.bezierCurveTo(150, 205 - 315, 215, 205 - 315, 235, 205 - 315);
+    graphics.lineWidth = 14;
+    graphics.moveTo(80, 105);
+    graphics.bezierCurveTo(150, 105, 205, 110, 245, 112);
     graphics.stroke();
     return node;
   }
 
-  private createPoolNode(title: string, subtitle: string, x: number, y: number): Node {
-    const node = new Node(`${title}Pool`);
+  private createSceneLabel(title: string, subtitle: string, x: number, y: number): Node {
+    const node = new Node(`${title}SceneLabel`);
     node.layer = this.node.layer;
-    node.setPosition(new Vec3(x, y - 360, 0));
-    node.addComponent(UITransform).setContentSize(170, 170);
+    node.setPosition(new Vec3(x, y, 0));
+    node.addComponent(UITransform).setContentSize(180, 88);
     const graphics = node.addComponent(Graphics);
-    graphics.fillColor = new Color(255, 249, 219, 245);
-    graphics.circle(0, 45, 70);
+    graphics.fillColor = new Color(255, 255, 255, 205);
+    graphics.roundRect(-90, -38, 180, 76, 22);
     graphics.fill();
-    graphics.strokeColor = new Color(78, 96, 126, 255);
-    graphics.lineWidth = 8;
-    graphics.circle(0, 45, 70);
+    graphics.strokeColor = new Color(255, 255, 255, 240);
+    graphics.lineWidth = 4;
+    graphics.roundRect(-90, -38, 180, 76, 22);
     graphics.stroke();
-    node.addChild(this.createLabel(title, 0, 52, 28, new Color(36, 48, 74, 255), 170));
-    node.addChild(this.createLabel(subtitle, 0, 8, 22, new Color(82, 96, 122, 255), 170));
+    node.addChild(this.createLabel(title, 0, 12, 26, new Color(36, 48, 74, 255), 170, {
+      color: new Color(255, 255, 255, 255),
+      width: 3
+    }));
+    node.addChild(this.createLabel(subtitle, 0, -20, 20, new Color(82, 96, 122, 255), 170));
+    return node;
+  }
+
+  private createLevelArt(): Node {
+    const node = new Node("LevelArt");
+    node.layer = this.node.layer;
+    node.setPosition(new Vec3(0, 245, 0));
+    node.addComponent(UITransform).setContentSize(860, 484);
+    const sprite = node.addComponent(Sprite);
+    sprite.sizeMode = Sprite.SizeMode.CUSTOM;
+    resources.load("art/chapter1-level1-bg/spriteFrame", SpriteFrame, (error, spriteFrame) => {
+      if (error || !spriteFrame) {
+        return;
+      }
+      sprite.spriteFrame = spriteFrame;
+    });
     return node;
   }
 
