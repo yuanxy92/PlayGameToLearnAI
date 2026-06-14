@@ -35,13 +35,13 @@ export class HomeController extends Component {
     content.addChild(this.createMapArt());
 
     const positions = [
-      new Vec3(-90, -610, 0),
-      new Vec3(-24, -405, 0),
-      new Vec3(-139, -275, 0),
-      new Vec3(-13, -125, 0),
-      new Vec3(129, 84, 0),
-      new Vec3(33, 256, 0),
-      new Vec3(204, 378, 0)
+      new Vec3(-146, -632, 0),
+      new Vec3(-69, -495, 0),
+      new Vec3(-110, -357, 0),
+      new Vec3(17, -225, 0),
+      new Vec3(114, -80, 0),
+      new Vec3(74, 124, 0),
+      new Vec3(186, 238, 0)
     ];
 
     chapterOneLevels.forEach((level, index) => {
@@ -160,23 +160,23 @@ export class HomeController extends Component {
     const node = new Node(`Level${index}`);
     node.layer = this.node.layer;
     node.setPosition(position);
-    node.addComponent(UITransform).setContentSize(150, 190);
+    node.addComponent(UITransform).setContentSize(130, 166);
 
     const disk = new Node(`LevelDisk${index}`);
     disk.layer = this.node.layer;
-    disk.addComponent(UITransform).setContentSize(132, 132);
+    disk.addComponent(UITransform).setContentSize(112, 112);
     const graphics = disk.addComponent(Graphics);
     graphics.fillColor = unlocked ? new Color(255, 255, 255, 255) : new Color(232, 238, 246, 255);
-    graphics.circle(0, 34, 66);
+    graphics.circle(0, 30, 56);
     graphics.fill();
     graphics.strokeColor = passed ? new Color(47, 142, 232, 255) : unlocked ? new Color(255, 177, 42, 255) : new Color(164, 177, 196, 255);
-    graphics.lineWidth = 12;
-    graphics.circle(0, 34, 66);
+    graphics.lineWidth = 10;
+    graphics.circle(0, 30, 56);
     graphics.stroke();
     node.addChild(disk);
 
-    node.addChild(this.createLabel(String(index), 0, 34, 54, unlocked ? new Color(32, 118, 190, 255) : new Color(142, 154, 174, 255), 120));
-    node.addChild(this.createLabel(passed ? "已通水" : unlocked ? "可进入" : "未开", 0, -72, 28, new Color(82, 96, 122, 255), 140));
+    node.addChild(this.createLabel(String(index), 0, 30, 48, unlocked ? new Color(32, 118, 190, 255) : new Color(142, 154, 174, 255), 110));
+    node.addChild(this.createLabel(passed ? "已通水" : unlocked ? "可进入" : "未开", 0, -58, 24, new Color(82, 96, 122, 255), 120));
     node.on(Node.EventType.TOUCH_END, onClick, this);
     const pulse = unlocked ? 1.05 : 1.025;
     const duration = unlocked ? 0.85 : 1.35;
