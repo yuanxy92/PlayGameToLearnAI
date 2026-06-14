@@ -16,6 +16,7 @@ export class HomeController extends Component {
   private buildPrototypeHome(): void {
     this.node.getChildByName("HomeContent")?.destroy();
     const content = new Node("HomeContent");
+    content.layer = this.node.layer;
     content.addComponent(UITransform).setContentSize(1080, 1920);
     this.node.addChild(content);
 
@@ -30,6 +31,7 @@ export class HomeController extends Component {
 
   private createRect(name: string, x: number, y: number, width: number, height: number, fill: Color, stroke?: Color): Node {
     const node = new Node(name);
+    node.layer = this.node.layer;
     node.setPosition(new Vec3(x - width / 2, y - height / 2, 0));
     const transform = node.addComponent(UITransform);
     transform.setContentSize(width, height);
@@ -49,6 +51,7 @@ export class HomeController extends Component {
 
   private createLabel(name: string, x: number, y: number, size: number, color: Color, width = 900): Node {
     const node = new Node(name);
+    node.layer = this.node.layer;
     node.setPosition(new Vec3(x, y, 0));
     const transform = node.addComponent(UITransform);
     transform.setContentSize(width, 180);
