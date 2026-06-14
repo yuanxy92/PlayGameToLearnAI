@@ -35,13 +35,13 @@ export class HomeController extends Component {
     content.addChild(this.createMapArt());
 
     const positions = [
-      new Vec3(-161, -608, 0),
+      new Vec3(-159, -610, 0),
       new Vec3(-69, -480, 0),
-      new Vec3(-7, -305, 0),
-      new Vec3(-112, -193, 0),
-      new Vec3(17, -86, 0),
-      new Vec3(116, 67, 0),
-      new Vec3(35, 187, 0)
+      new Vec3(-5, -304, 0),
+      new Vec3(-113, -193, 0),
+      new Vec3(18, -88, 0),
+      new Vec3(115, 66, 0),
+      new Vec3(34, 186, 0)
     ];
 
     chapterOneLevels.forEach((level, index) => {
