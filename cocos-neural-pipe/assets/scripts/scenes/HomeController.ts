@@ -36,9 +36,19 @@ export class HomeController extends Component {
     this.node.getChildByName("HomeContent")?.destroy();
     const content = new Node("HomeContent");
     content.layer = this.node.layer;
-    content.addComponent(UITransform).setContentSize(1080, 1920);
+    const canvasSize = this.node.getComponent(UITransform)?.contentSize;
+    const viewportWidth = canvasSize?.width || 1080;
+    const viewportHeight = canvasSize?.height || 1920;
+    content.addComponent(UITransform).setContentSize(viewportWidth, viewportHeight);
     this.node.addChild(content);
-    return content;
+
+    const stage = new Node("GameStage");
+    stage.layer = this.node.layer;
+    stage.addComponent(UITransform).setContentSize(1080, 1920);
+    const scale = Math.min(viewportWidth / 1080, viewportHeight / 1920);
+    stage.setScale(scale, scale, 1);
+    content.addChild(stage);
+    return stage;
   }
 
   private createRect(name: string, x: number, y: number, width: number, height: number, fill: Color, stroke?: Color): Node {
