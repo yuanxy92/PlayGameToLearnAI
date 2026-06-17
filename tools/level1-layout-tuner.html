@@ -83,6 +83,7 @@
     .stage img.bottomHudArt {
       top: 65.1%;
       height: 34.9%;
+      display: none;
     }
 
     .runtimeChrome {
@@ -117,6 +118,98 @@
       height: 34%;
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.26);
+    }
+
+    .controlPanelBase {
+      position: absolute;
+      left: 2.59%;
+      top: 65.42%;
+      width: 94.82%;
+      height: 31.46%;
+      border-radius: 52px;
+      background: #fff9ed;
+      border: 5px solid rgba(220, 165, 82, 0.9);
+      box-shadow:
+        0 10px 0 rgba(194, 135, 62, 0.42),
+        inset 0 0 0 7px rgba(255, 255, 255, 0.72);
+    }
+
+    .pipeIconSlot,
+    .smallControlSlot,
+    .sliderControl,
+    .buttonSurface {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+
+    .pipeIconSlot {
+      width: 14.63%;
+      height: 8.23%;
+      border-radius: 999px;
+      background: #fff6e0;
+      border: 8px solid #ffdf5a;
+      box-shadow: inset 0 0 0 5px #fff, 0 8px 14px rgba(160, 100, 32, 0.28);
+    }
+
+    .smallControlSlot {
+      width: 7.78%;
+      height: 5%;
+      border-radius: 18px;
+      background: #ffedca;
+      border: 4px solid rgba(205, 148, 69, 0.92);
+      box-shadow: inset 0 10px 12px rgba(255, 255, 255, 0.36);
+    }
+
+    .smallControlSlot.blue {
+      background: #53b0fa;
+      border-color: #196bc3;
+    }
+
+    .sliderControl {
+      width: 40.37%;
+      height: 5.31%;
+    }
+
+    .sliderControl::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 24%;
+      height: 52%;
+      border-radius: 999px;
+      background: #f4e1c2;
+      border: 3px solid rgba(194, 137, 72, 0.82);
+    }
+
+    .sliderControl::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 0;
+      width: 19.26%;
+      height: 100%;
+      border-radius: 22px;
+      background: #ffefd3;
+      border: 4px solid rgba(199, 147, 82, 0.9);
+      transform: translateX(-50%);
+    }
+
+    .buttonSurface {
+      border-radius: 34px;
+      box-shadow: 0 9px 0 rgba(194, 135, 62, 0.45), inset 0 12px 14px rgba(255, 255, 255, 0.36);
+    }
+
+    .buttonSurface.cream {
+      background: #fff0d2;
+      border: 5px solid rgba(194, 135, 62, 0.96);
+    }
+
+    .buttonSurface.blue {
+      background: #2c9ff2;
+      border: 5px solid #1461be;
+      box-shadow: 0 9px 0 #135bb2, inset 0 12px 14px rgba(255, 255, 255, 0.22);
     }
 
     .flowSvg {
@@ -475,158 +568,504 @@
 
   <script>
     const DEFAULT_LAYOUT = {
-      background: {
-        path: "art/level1/gameplay-bg-clean",
-        x: 0,
-        y: 0,
-        width: 1080,
-        height: 1920
+      "background": {
+        "path": "art/level1/gameplay-bg-clean",
+        "x": 0,
+        "y": 0,
+        "width": 1080,
+        "height": 1920
       },
-      hudArt: {
-        top: { path: "art/level1/ui-top", x: 0, y: 826, width: 1080, height: 216 },
-        titleWidget: { path: "art/level1/ui-title-widget-v2", x: -190, y: 812, width: 640, height: 170 },
-        mapButton: { path: "art/level1/ui-map-button-v2", x: 419, y: 812, width: 164, height: 164 },
-        bottom: { path: "art/level1/ui-bottom-v2", x: 0, y: -625, width: 1080, height: 670 }
+      "hudArt": {
+        "top": {
+          "path": "art/level1/ui-top",
+          "x": 0,
+          "y": 826,
+          "width": 1080,
+          "height": 216
+        },
+        "titleWidget": {
+          "path": "art/level1/ui-title-widget-wide",
+          "x": -184,
+          "y": 808,
+          "width": 660,
+          "height": 170
+        },
+        "mapButton": {
+          "path": "art/level1/ui-map-button-v2",
+          "x": 419,
+          "y": 812,
+          "width": 164,
+          "height": 164
+        },
+        "bottom": {
+          "path": "art/level1/ui-bottom-v2",
+          "x": 0,
+          "y": -625,
+          "width": 1080,
+          "height": 670
+        }
       },
-      top: {
-        chapter: { x: -282, y: 801, size: 36, width: 180, height: 58 },
-        title: { x: -103, y: 808, size: 50, width: 390, height: 72 },
-        objective: { x: 4, y: 687, size: 37, width: 753, height: 62 },
-        mapButton: { x: 419, y: 812, width: 190, height: 150 }
+      "controlArt": {
+        "panel": {
+          "x": 0,
+          "y": -626,
+          "width": 1028,
+          "height": 602
+        },
+        "gaugeShell": {
+          "path": "art/level1/ui-control-gauge-shell",
+          "x": 0,
+          "y": -429,
+          "width": 970,
+          "height": 190
+        },
+        "pipeSlot": {
+          "path": "art/level1/ui-control-pipe-slot",
+          "x": -378,
+          "y": -627,
+          "width": 164,
+          "height": 158
+        },
+        "creamSlot": {
+          "path": "art/level1/ui-control-small-slot",
+          "x": -194,
+          "y": -628,
+          "width": 120,
+          "height": 125
+        },
+        "slider": {
+          "path": "art/level1/ui-control-slider",
+          "x": 99,
+          "y": -621,
+          "width": 446,
+          "height": 100
+        },
+        "blueSlot": {
+          "path": "art/level1/ui-control-blue-slot",
+          "x": 398,
+          "y": -629,
+          "width": 120,
+          "height": 130
+        },
+        "backButton": {
+          "path": "art/level1/ui-control-back-button",
+          "x": -282,
+          "y": -808,
+          "width": 368,
+          "height": 170
+        },
+        "mainButton": {
+          "path": "art/level1/ui-control-main-button",
+          "x": 192,
+          "y": -809,
+          "width": 540,
+          "height": 174
+        }
       },
-      visualNodes: [
+      "top": {
+        "chapter": {
+          "x": -258,
+          "y": 813,
+          "size": 36,
+          "width": 140,
+          "height": 58
+        },
+        "title": {
+          "x": -65,
+          "y": 816,
+          "size": 50,
+          "width": 270,
+          "height": 72
+        },
+        "objective": {
+          "x": 4,
+          "y": 687,
+          "size": 37,
+          "width": 753,
+          "height": 62
+        },
+        "mapButton": {
+          "x": 423,
+          "y": 817,
+          "width": 118,
+          "height": 122
+        }
+      },
+      "visualNodes": [
         {
-          id: "source",
-          kind: "source",
-          x: -394,
-          y: 2,
-          width: 236,
-          height: 220,
-          label: { x: -375, y: -111, width: 162, height: 78, titleSize: 38, subtitleSize: 27 },
-          pulse: { x: -374, y: 19 },
-          ports: {
-            output: { x: -303, y: 13 },
-            right: { x: -303, y: 13 }
+          "id": "source",
+          "kind": "source",
+          "x": -394,
+          "y": 2,
+          "width": 236,
+          "height": 220,
+          "label": {
+            "x": -375,
+            "y": -111,
+            "width": 162,
+            "height": 78,
+            "titleSize": 38,
+            "subtitleSize": 27
+          },
+          "pulse": {
+            "x": -374,
+            "y": 19
+          },
+          "ports": {
+            "output": {
+              "x": -303,
+              "y": 13
+            },
+            "right": {
+              "x": -303,
+              "y": 13
+            }
           }
         },
         {
-          id: "merge",
-          kind: "merge",
-          x: 30,
-          y: 26,
-          width: 250,
-          height: 173,
-          label: { x: 44, y: -133, width: 170, height: 82, titleSize: 38, subtitleSize: 27 },
-          pulse: { x: 38, y: 33 },
-          ports: {
-            input: { x: -76, y: 8 },
-            left: { x: -76, y: 8 },
-            output: { x: 142, y: 9 },
-            right: { x: 142, y: 9 }
+          "id": "merge",
+          "kind": "merge",
+          "x": 30,
+          "y": 26,
+          "width": 250,
+          "height": 173,
+          "label": {
+            "x": 44,
+            "y": -133,
+            "width": 170,
+            "height": 82,
+            "titleSize": 38,
+            "subtitleSize": 27
+          },
+          "pulse": {
+            "x": 38,
+            "y": 33
+          },
+          "ports": {
+            "input": {
+              "x": -76,
+              "y": 8
+            },
+            "left": {
+              "x": -76,
+              "y": 8
+            },
+            "output": {
+              "x": 142,
+              "y": 9
+            },
+            "right": {
+              "x": 142,
+              "y": 9
+            }
           }
         },
         {
-          id: "tank",
-          kind: "tank",
-          x: 404,
-          y: 82,
-          width: 178,
-          height: 276,
-          label: { x: 414, y: -106, width: 170, height: 82, titleSize: 38, subtitleSize: 27 },
-          pulse: { x: 408, y: 82 },
-          ports: {
-            input: { x: 313, y: 9 },
-            left: { x: 313, y: 9 }
+          "id": "tank",
+          "kind": "tank",
+          "x": 404,
+          "y": 82,
+          "width": 178,
+          "height": 276,
+          "label": {
+            "x": 414,
+            "y": -106,
+            "width": 170,
+            "height": 82,
+            "titleSize": 38,
+            "subtitleSize": 27
+          },
+          "pulse": {
+            "x": 408,
+            "y": 82
+          },
+          "ports": {
+            "input": {
+              "x": 313,
+              "y": 9
+            },
+            "left": {
+              "x": 313,
+              "y": 9
+            }
           }
         }
       ],
-      scene: {
-        source: { x: -386, y: -150, width: 162, height: 78, titleSize: 38, subtitleSize: 27 },
-        merge: { x: 40, y: -164, width: 170, height: 82, titleSize: 38, subtitleSize: 27 },
-        tank: { x: 391, y: -158, width: 170, height: 82, titleSize: 38, subtitleSize: 27 }
+      "scene": {
+        "source": {
+          "x": -386,
+          "y": -150,
+          "width": 162,
+          "height": 78,
+          "titleSize": 38,
+          "subtitleSize": 27
+        },
+        "merge": {
+          "x": 40,
+          "y": -164,
+          "width": 170,
+          "height": 82,
+          "titleSize": 38,
+          "subtitleSize": 27
+        },
+        "tank": {
+          "x": 391,
+          "y": -158,
+          "width": 170,
+          "height": 82,
+          "titleSize": 38,
+          "subtitleSize": 27
+        }
       },
-      visualPipes: [
+      "visualPipes": [
         {
-          pipeId: "x1",
-          state: "supply",
-          from: { nodeId: "source", port: "output" },
-          to: { nodeId: "merge", port: "input" },
-          connector: { x: -185, y: 10, width: 264, height: 64 },
-          hitbox: { x: -184, y: 4, width: 230, height: 190 },
-          glow: { x: -187, y: 2, width: 174, height: 174 },
-          prompt: { x: -193, y: 4, size: 34, width: 240, height: 56 },
-          flowPath: [
-            { x: -303, y: 13 },
-            { x: -235, y: 6 },
-            { x: -152, y: 6 },
-            { x: -76, y: 8 }
+          "pipeId": "x1",
+          "state": "supply",
+          "from": {
+            "nodeId": "source",
+            "port": "output"
+          },
+          "to": {
+            "nodeId": "merge",
+            "port": "input"
+          },
+          "connector": {
+            "x": -185,
+            "y": 10,
+            "width": 264,
+            "height": 64
+          },
+          "hitbox": {
+            "x": -184,
+            "y": 4,
+            "width": 230,
+            "height": 190
+          },
+          "glow": {
+            "x": -187,
+            "y": 2,
+            "width": 174,
+            "height": 174
+          },
+          "prompt": {
+            "x": -193,
+            "y": 4,
+            "size": 34,
+            "width": 240,
+            "height": 56
+          },
+          "flowPath": [
+            {
+              "x": -303,
+              "y": 13
+            },
+            {
+              "x": -235,
+              "y": 6
+            },
+            {
+              "x": -152,
+              "y": 6
+            },
+            {
+              "x": -76,
+              "y": 8
+            }
           ]
         },
         {
-          pipeId: "merge-to-tank",
-          state: "supply",
-          from: { nodeId: "merge", port: "output" },
-          to: { nodeId: "tank", port: "input" },
-          connector: { x: 229, y: 10, width: 246, height: 64 },
-          hitbox: { x: 228, y: 10, width: 0, height: 0 },
-          glow: { x: 228, y: 10, width: 0, height: 0 },
-          prompt: { x: 228, y: 10, size: 1, width: 1, height: 1 },
-          flowPath: [
-            { x: 142, y: 9 },
-            { x: 232, y: 8 },
-            { x: 313, y: 9 }
+          "pipeId": "merge-to-tank",
+          "state": "supply",
+          "from": {
+            "nodeId": "merge",
+            "port": "output"
+          },
+          "to": {
+            "nodeId": "tank",
+            "port": "input"
+          },
+          "connector": {
+            "x": 229,
+            "y": 10,
+            "width": 246,
+            "height": 64
+          },
+          "hitbox": {
+            "x": 228,
+            "y": 10,
+            "width": 0,
+            "height": 0
+          },
+          "glow": {
+            "x": 228,
+            "y": 10,
+            "width": 0,
+            "height": 0
+          },
+          "prompt": {
+            "x": 228,
+            "y": 10,
+            "size": 1,
+            "width": 1,
+            "height": 1
+          },
+          "flowPath": [
+            {
+              "x": 142,
+              "y": 9
+            },
+            {
+              "x": 232,
+              "y": 8
+            },
+            {
+              "x": 313,
+              "y": 9
+            }
           ]
         }
       ],
-      pipe: {
-        glow: { x: -187, y: 2, width: 174, height: 174 },
-        connector: { x: -185, y: 10, width: 262, height: 64 },
-        prompt: { x: -193, y: 4, size: 34, width: 240, height: 56 },
-        hitbox: { x: -184, y: 4, width: 230, height: 190 }
+      "pipe": {
+        "glow": {
+          "x": -187,
+          "y": 2,
+          "width": 174,
+          "height": 174
+        },
+        "connector": {
+          "x": -185,
+          "y": 10,
+          "width": 262,
+          "height": 64
+        },
+        "prompt": {
+          "x": -193,
+          "y": 4,
+          "size": 34,
+          "width": 240,
+          "height": 56
+        },
+        "hitbox": {
+          "x": -184,
+          "y": 4,
+          "width": 230,
+          "height": 190
+        }
       },
-      gauge: {
-        startX: -292,
-        width: 702,
-        y: -424,
-        max: 1.2,
-        fillHeight: 78,
-        targetHeight: 92,
-        title: { x: -167, y: -427, size: 35, width: 218, height: 60 },
-        targetText: { x: 290, y: -426, size: 35, width: 280, height: 60 }
+      "gauge": {
+        "startX": -295,
+        "width": 702,
+        "y": -429,
+        "max": 1.2,
+        "fillHeight": 90,
+        "targetHeight": 92,
+        "title": {
+          "x": -167,
+          "y": -427,
+          "size": 35,
+          "width": 218,
+          "height": 60
+        },
+        "targetText": {
+          "x": 290,
+          "y": -426,
+          "size": 35,
+          "width": 280,
+          "height": 60
+        }
       },
-      status: {
-        current: { x: 408, y: -231, size: 34, width: 200, height: 106 }
+      "status": {
+        "current": {
+          "x": 408,
+          "y": -231,
+          "size": 34,
+          "width": 200,
+          "height": 106
+        }
       },
-      buttons: {
-        backText: { x: -287, y: -812, size: 48, width: 280, height: 82 },
-        mainText: { x: 193, y: -810, size: 54, width: 430, height: 88 },
-        backHitbox: { x: -290, y: -809, width: 330, height: 112 },
-        mainHitbox: { x: 185, y: -812, width: 500, height: 120 }
+      "buttons": {
+        "backText": {
+          "x": -287,
+          "y": -812,
+          "size": 48,
+          "width": 280,
+          "height": 82
+        },
+        "mainText": {
+          "x": 193,
+          "y": -810,
+          "size": 54,
+          "width": 430,
+          "height": 88
+        },
+        "backHitbox": {
+          "x": -284,
+          "y": -808,
+          "width": 330,
+          "height": 112
+        },
+        "mainHitbox": {
+          "x": 186,
+          "y": -810,
+          "width": 500,
+          "height": 120
+        }
       },
-      flow: {
-        sourceToMerge: [
-          { x: -303, y: 13 },
-          { x: -235, y: 6 },
-          { x: -152, y: 6 },
-          { x: -76, y: 8 }
+      "flow": {
+        "sourceToMerge": [
+          {
+            "x": -303,
+            "y": 13
+          },
+          {
+            "x": -235,
+            "y": 6
+          },
+          {
+            "x": -152,
+            "y": 6
+          },
+          {
+            "x": -76,
+            "y": 8
+          }
         ],
-        mergeToTank: [
-          { x: 142, y: 9 },
-          { x: 232, y: 8 },
-          { x: 313, y: 9 }
+        "mergeToTank": [
+          {
+            "x": 142,
+            "y": 9
+          },
+          {
+            "x": 232,
+            "y": 8
+          },
+          {
+            "x": 313,
+            "y": 9
+          }
         ],
-        dotCount: 2
+        "dotCount": 2
       },
-      ambient: {
-        source: { x: -389, y: 179 },
-        merge: { x: 27, y: 53 },
-        tank: { x: 386, y: 30 }
+      "ambient": {
+        "source": {
+          "x": -389,
+          "y": 179
+        },
+        "merge": {
+          "x": 27,
+          "y": 53
+        },
+        "tank": {
+          "x": 386,
+          "y": 30
+        }
       }
     };
 
-    const TITLE_WIDGET_IMAGE = "../cocos-neural-pipe/assets/resources/art/level1/ui-title-widget-v2.png";
+    const TITLE_WIDGET_IMAGE = "../cocos-neural-pipe/assets/resources/art/level1/ui-title-widget-wide.png";
     const MAP_BUTTON_IMAGE = "../cocos-neural-pipe/assets/resources/art/level1/ui-map-button-v2.png";
-    const STORAGE_KEY = "neural-pipe-level1-layout-v9";
+    const CONTROL_ART_BASE = "../cocos-neural-pipe/assets/resources/";
+    const STORAGE_KEY = "neural-pipe-level1-layout-v13";
     const stage = document.getElementById("stage");
     const overlay = document.getElementById("overlay");
     const runtimeChrome = document.getElementById("runtimeChrome");
@@ -650,6 +1089,13 @@
     const specs = [
       { path: "hudArt.titleWidget", kind: "rect", text: "标题组件背景" },
       { path: "hudArt.mapButton", kind: "rect", text: "地图图标组件" },
+      { path: "controlArt.gaugeShell", kind: "rect", text: "水位槽组件" },
+      { path: "controlArt.pipeSlot", kind: "rect", text: "管件槽组件" },
+      { path: "controlArt.creamSlot", kind: "rect", text: "小方槽组件" },
+      { path: "controlArt.slider", kind: "rect", text: "滑条组件" },
+      { path: "controlArt.blueSlot", kind: "rect", text: "蓝色按钮组件" },
+      { path: "controlArt.backButton", kind: "rect", text: "返回按钮组件" },
+      { path: "controlArt.mainButton", kind: "rect", text: "主按钮组件" },
       { path: "top.chapter", kind: "label", text: "第 1 关" },
       { path: "top.title", kind: "label", text: "接通山泉" },
       { path: "top.objective", kind: "label", text: "接上第一根输水管，让供水池贴近黄线。" },
@@ -837,6 +1283,7 @@
 
     function renderRuntimeChrome() {
       runtimeChrome.innerHTML = "";
+      renderControlPanelChrome();
 
       const titleBg = document.createElement("img");
       titleBg.className = "runtimeSprite";
@@ -873,6 +1320,44 @@
       mapButton.style.width = `${layout.hudArt.mapButton.width / 1080 * 100}%`;
       mapButton.style.height = `${layout.hudArt.mapButton.height / 1920 * 100}%`;
       runtimeChrome.appendChild(mapButton);
+    }
+
+    function renderControlPanelChrome() {
+      const panel = document.createElement("div");
+      panel.className = "controlPanelBase";
+      runtimeChrome.appendChild(panel);
+
+      addRuntimeImage(layout.controlArt.gaugeShell);
+      addRuntimeImage(layout.controlArt.pipeSlot);
+      addRuntimeImage(layout.controlArt.creamSlot);
+      addRuntimeSlider(layout.controlArt.slider);
+      addRuntimeImage(layout.controlArt.blueSlot);
+      addRuntimeImage(layout.controlArt.backButton);
+      addRuntimeImage(layout.controlArt.mainButton);
+    }
+
+    function addRuntimeSlider(rect) {
+      const node = document.createElement("div");
+      node.className = "sliderControl";
+      const pos = logicalToPercent(rect);
+      node.style.left = `${pos.left}%`;
+      node.style.top = `${pos.top}%`;
+      node.style.width = `${rect.width / 1080 * 100}%`;
+      node.style.height = `${rect.height / 1920 * 100}%`;
+      runtimeChrome.appendChild(node);
+    }
+
+    function addRuntimeImage(rect) {
+      const node = document.createElement("img");
+      node.className = "runtimeSprite";
+      node.src = `${CONTROL_ART_BASE}${rect.path}.png`;
+      node.alt = rect.path;
+      const pos = logicalToPercent(rect);
+      node.style.left = `${pos.left}%`;
+      node.style.top = `${pos.top}%`;
+      node.style.width = `${rect.width / 1080 * 100}%`;
+      node.style.height = `${rect.height / 1920 * 100}%`;
+      runtimeChrome.appendChild(node);
     }
 
     function createResizeHandle(className, path, axis) {

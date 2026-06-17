@@ -1,11 +1,12 @@
-import { _decorator, Color, Component, Graphics, Label, Node, resources, Sprite, SpriteFrame, tween, UITransform, Vec3 } from "cc";
+import { _decorator, Color, Component, Graphics, Label, Node, resources, Sprite, SpriteFrame, Texture2D, tween, Tween, UITransform, Vec3 } from "cc";
 import { gameState } from "../app/GameState";
 import { clamp, cloneLevel, evaluateLevel } from "../core/LinearWaterModel";
 import { evaluateStars, pipeStrengthName, waterStatus } from "../core/LevelEvaluator";
 import { chapterOneLevels } from "../data/ChapterOneLevels";
-import { LEVEL_ONE_LAYOUT, type GameLabelLayout, type LabelLayout, type RectLayout, type VisualNodeKind, type VisualPipeLayout, type VisualPipeState } from "../data/LevelOneLayout";
+import { LEVEL_ONE_LAYOUT, type GameLabelLayout, type LabelLayout, type VisualNodeKind, type VisualPipeLayout, type VisualPipeState } from "../data/LevelOneLayout";
 import type { LevelConfig, PipeConfig } from "../data/LevelTypes";
 import { createGeneratedPipeVisual, resolveVisualPipePath } from "../ui/PipeRouteTool";
+import { createSliderControl } from "../ui/SliderControlTool";
 import { createWaterGauge } from "../ui/WaterGaugeTool";
 
 const { ccclass } = _decorator;
@@ -143,9 +144,9 @@ export class HomeController extends Component {
     const content = this.createContentLayer();
     const layers = this.createLevelOneLayers(content);
     layers.background.addChild(this.createSprite("Level1CleanBackground", layout.background.path, layout.background.x, layout.background.y, layout.background.width, layout.background.height));
-    layers.hud.addChild(this.createSprite("Level1BottomHudArt", layout.hudArt.bottom.path, layout.hudArt.bottom.x, layout.hudArt.bottom.y, layout.hudArt.bottom.width, layout.hudArt.bottom.height));
     layers.hud.addChild(this.createLevelOneTitleWidget(level));
-    layers.hud.addChild(this.createLevelOneMapButtonWidget());
+    const mapWidget = this.createLevelOneMapButtonWidget();
+    layers.hud.addChild(mapWidget);
 
     this.addLevelOneVisualNodes(layers.nodes);
     this.addLevelOnePipeInteraction(layers.pipes, layers.input, level, pipe);
@@ -161,7 +162,7 @@ export class HomeController extends Component {
       color: new Color(255, 255, 255, 245),
       width: 4
     }));
-    layers.input.addChild(this.createInvisibleButton("Level1MapButton", layout.top.mapButton.x, layout.top.mapButton.y, layout.top.mapButton.width, layout.top.mapButton.height, () => this.buildPrototypeMap()));
+    layers.input.addChild(this.createInvisibleButton("Level1MapButton", layout.top.mapButton.x, layout.top.mapButton.y, layout.top.mapButton.width, layout.top.mapButton.height, () => this.buildPrototypeMap(), mapWidget));
     this.addLevelOneControlDock(layers.hud, layers.input, level, row.y, sample.target, status, stars);
   }
 
@@ -274,6 +275,27 @@ export class HomeController extends Component {
 
   private addLevelOneControlDock(content: Node, inputLayer: Node, level: LevelConfig, output: number, target: number, status: string, stars: number): void {
     const layout = LEVEL_ONE_LAYOUT;
+    content.addChild(this.createLevelOneControlPanelBase());
+    content.addChild(this.createLevelOneControlSprite("Level1GaugeShellArt", layout.controlArt.gaugeShell));
+    content.addChild(this.createLevelOneControlSprite("Level1PipeSlotArt", layout.controlArt.pipeSlot));
+    content.addChild(this.createLevelOneControlSprite("Level1CreamSlotArt", layout.controlArt.creamSlot));
+    content.addChild(createSliderControl({
+      name: "Level1SliderControl",
+      x: layout.controlArt.slider.x,
+      y: layout.controlArt.slider.y,
+      width: layout.controlArt.slider.width,
+      height: layout.controlArt.slider.height,
+      min: 0,
+      max: 1,
+      value: 0.5,
+      enabled: false,
+      layer: this.node.layer
+    }));
+    content.addChild(this.createLevelOneControlSprite("Level1BlueSlotArt", layout.controlArt.blueSlot));
+    const backButtonArt = this.createLevelOneControlSprite("Level1BackButtonArt", layout.controlArt.backButton);
+    const mainButtonArt = this.createLevelOneControlSprite("Level1MainButtonArt", layout.controlArt.mainButton);
+    content.addChild(backButtonArt);
+    content.addChild(mainButtonArt);
     content.addChild(createWaterGauge({
       name: "Level1WaterGauge",
       current: output,
@@ -298,8 +320,50 @@ export class HomeController extends Component {
       color: new Color(26, 107, 184, 255),
       width: 4
     }));
-    inputLayer.addChild(this.createInvisibleButton("Level1BackButton", layout.buttons.backHitbox.x, layout.buttons.backHitbox.y, layout.buttons.backHitbox.width, layout.buttons.backHitbox.height, () => this.buildPrototypeMap()));
-    inputLayer.addChild(this.createInvisibleButton("Level1TryButton", layout.buttons.mainHitbox.x, layout.buttons.mainHitbox.y, layout.buttons.mainHitbox.width, layout.buttons.mainHitbox.height, () => this.checkPlayableLevel()));
+    inputLayer.addChild(this.createInvisibleButton("Level1BackButton", layout.buttons.backHitbox.x, layout.buttons.backHitbox.y, layout.buttons.backHitbox.width, layout.buttons.backHitbox.height, () => this.buildPrototypeMap(), backButtonArt));
+    inputLayer.addChild(this.createInvisibleButton("Level1TryButton", layout.buttons.mainHitbox.x, layout.buttons.mainHitbox.y, layout.buttons.mainHitbox.width, layout.buttons.mainHitbox.height, () => this.checkPlayableLevel(), mainButtonArt));
+  }
+
+  private createLevelOneControlPanelBase(): Node {
+    const node = new Node("Level1ControlPanelBase");
+    node.layer = this.node.layer;
+    node.setPosition(new Vec3(0, 0, 0));
+    node.addComponent(UITransform).setContentSize(1080, 1920);
+    const graphics = node.addComponent(Graphics);
+    const panel = LEVEL_ONE_LAYOUT.controlArt.panel;
+
+    const x = panel.x - panel.width / 2;
+    const y = panel.y - panel.height / 2;
+    const radius = 72;
+    graphics.fillColor = new Color(231, 174, 84, 218);
+    graphics.roundRect(x - 7, y - 10, panel.width + 14, panel.height + 18, radius + 8);
+    graphics.fill();
+
+    graphics.fillColor = new Color(255, 249, 238, 252);
+    graphics.roundRect(x, y, panel.width, panel.height, radius);
+    graphics.fill();
+
+    graphics.strokeColor = new Color(238, 187, 100, 235);
+    graphics.lineWidth = 6;
+    graphics.roundRect(x, y, panel.width, panel.height, radius);
+    graphics.stroke();
+
+    graphics.strokeColor = new Color(255, 255, 255, 200);
+    graphics.lineWidth = 7;
+    graphics.roundRect(x + 18, y + 18, panel.width - 36, panel.height - 36, radius - 16);
+    graphics.stroke();
+
+    graphics.fillColor = new Color(255, 255, 255, 72);
+    graphics.roundRect(x + 58, y + panel.height - 70, panel.width - 116, 28, 14);
+    graphics.fill();
+    return node;
+  }
+
+  private createLevelOneControlSprite(
+    name: string,
+    layout: { path: string; x: number; y: number; width: number; height: number }
+  ): Node {
+    return this.createSprite(name, layout.path, layout.x, layout.y, layout.width, layout.height);
   }
 
   private addLevelOneFlow(content: Node): void {
@@ -325,13 +389,21 @@ export class HomeController extends Component {
     const sprite = node.addComponent(Sprite);
     sprite.sizeMode = Sprite.SizeMode.CUSTOM;
     resources.load(`${resourcePath}/spriteFrame`, SpriteFrame, (error, spriteFrame) => {
-      if (error || !spriteFrame) return;
-      sprite.spriteFrame = spriteFrame;
+      if (!error && spriteFrame) {
+        sprite.spriteFrame = spriteFrame;
+        return;
+      }
+      resources.load(`${resourcePath}/texture`, Texture2D, (textureError, texture) => {
+        if (textureError || !texture) return;
+        const fallbackFrame = new SpriteFrame();
+        fallbackFrame.texture = texture;
+        sprite.spriteFrame = fallbackFrame;
+      });
     });
     return node;
   }
 
-  private createInvisibleButton(name: string, x: number, y: number, width: number, height: number, onClick: () => void): Node {
+  private createInvisibleButton(name: string, x: number, y: number, width: number, height: number, onClick: () => void, feedbackTarget?: Node): Node {
     const node = new Node(name);
     node.layer = this.node.layer;
     node.setPosition(new Vec3(x, y, 0));
@@ -340,6 +412,7 @@ export class HomeController extends Component {
     graphics.fillColor = new Color(255, 255, 255, 1);
     graphics.rect(-width / 2, -height / 2, width, height);
     graphics.fill();
+    this.attachPressFeedback(node, feedbackTarget ?? node);
     node.on(Node.EventType.TOUCH_END, onClick, this);
     return node;
   }
@@ -409,10 +482,13 @@ export class HomeController extends Component {
   }
 
   private createLevelOneMapButtonWidget(): Node {
-    return this.createLevelOneOverlaySprite(
+    return this.createSprite(
       "LevelOneMapButtonWidget",
       LEVEL_ONE_LAYOUT.hudArt.mapButton.path,
-      LEVEL_ONE_LAYOUT.hudArt.mapButton
+      LEVEL_ONE_LAYOUT.hudArt.mapButton.x,
+      LEVEL_ONE_LAYOUT.hudArt.mapButton.y,
+      LEVEL_ONE_LAYOUT.hudArt.mapButton.width,
+      LEVEL_ONE_LAYOUT.hudArt.mapButton.height
     );
   }
 
@@ -1106,9 +1182,21 @@ export class HomeController extends Component {
   }
 
   private createButton(name: string, x: number, y: number, width: number, height: number, caption: string, onClick: () => void, labelSize = 44): Node {
-    const node = this.createRect(name, x, y, width, height, new Color(47, 142, 232, 255), new Color(30, 102, 181, 255));
-    const labelNode = this.createLabel(caption, width / 2, height / 2, labelSize, new Color(255, 255, 255, 255), width);
+    const node = new Node(name);
+    node.layer = this.node.layer;
+    node.setPosition(new Vec3(x, y, 0));
+    node.addComponent(UITransform).setContentSize(width, height);
+    const graphics = node.addComponent(Graphics);
+    graphics.fillColor = new Color(47, 142, 232, 255);
+    graphics.roundRect(-width / 2, -height / 2, width, height, 42);
+    graphics.fill();
+    graphics.strokeColor = new Color(30, 102, 181, 255);
+    graphics.lineWidth = 5;
+    graphics.roundRect(-width / 2, -height / 2, width, height, 42);
+    graphics.stroke();
+    const labelNode = this.createLabel(caption, 0, 0, labelSize, new Color(255, 255, 255, 255), width);
     node.addChild(labelNode);
+    this.attachPressFeedback(node);
     node.on(Node.EventType.TOUCH_END, onClick, this);
     return node;
   }
@@ -1156,6 +1244,7 @@ export class HomeController extends Component {
       color: new Color(255, 255, 255, 245),
       width: 4
     }));
+    this.attachPressFeedback(node, disk);
     node.on(Node.EventType.TOUCH_END, onClick, this);
     const pulse = unlocked ? 1.05 : 1.025;
     const duration = unlocked ? 0.85 : 1.35;
@@ -1167,5 +1256,35 @@ export class HomeController extends Component {
       )
       .start();
     return node;
+  }
+
+  private attachPressFeedback(hitNode: Node, targetNode = hitNode): void {
+    let hovered = false;
+    const normal = new Vec3(1, 1, 1);
+    const hover = new Vec3(1.035, 1.035, 1);
+    const pressed = new Vec3(0.955, 0.955, 1);
+
+    const animateTo = (scale: Vec3, duration: number): void => {
+      Tween.stopAllByTarget(targetNode);
+      tween(targetNode).to(duration, { scale }, { easing: "quadOut" }).start();
+    };
+
+    hitNode.on(Node.EventType.MOUSE_ENTER, () => {
+      hovered = true;
+      animateTo(hover, 0.1);
+    }, this);
+    hitNode.on(Node.EventType.MOUSE_LEAVE, () => {
+      hovered = false;
+      animateTo(normal, 0.12);
+    }, this);
+    hitNode.on(Node.EventType.TOUCH_START, () => {
+      animateTo(pressed, 0.06);
+    }, this);
+    hitNode.on(Node.EventType.TOUCH_END, () => {
+      animateTo(hovered ? hover : normal, 0.12);
+    }, this);
+    hitNode.on(Node.EventType.TOUCH_CANCEL, () => {
+      animateTo(normal, 0.12);
+    }, this);
   }
 }

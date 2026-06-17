@@ -10,7 +10,7 @@ export type GeneratedPipeOptions = {
 };
 
 export function resolveVisualPipePath(pipe: VisualPipeLayout, nodes: readonly VisualNodeLayout[]): PointLayout[] {
-  if (pipe.flowPath.length >= 2) return pipe.flowPath;
+  if (pipe.flowPath.length >= 2) return [...pipe.flowPath];
 
   const from = pipe.from ? findPort(nodes, pipe.from.nodeId, pipe.from.port) : null;
   const to = pipe.to ? findPort(nodes, pipe.to.nodeId, pipe.to.port) : null;
