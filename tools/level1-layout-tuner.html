@@ -1,0 +1,1164 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>第 1 关 UI 对齐工具</title>
+  <style>
+    :root {
+      --ink: #23304a;
+      --muted: #68758e;
+      --blue: #2f8ee8;
+      --line: #c8ddf0;
+      --panel: rgba(255, 255, 255, 0.92);
+      --accent: #ffb12a;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #e6f6ff;
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: minmax(360px, 1fr) 430px;
+      gap: 18px;
+      min-height: 100vh;
+      padding: 18px;
+    }
+
+    .previewShell,
+    .side {
+      border: 2px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.9);
+      box-shadow: 0 18px 50px rgba(44, 94, 140, 0.12);
+    }
+
+    .previewShell {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      overflow: auto;
+    }
+
+    .stage {
+      position: relative;
+      width: min(560px, calc(100vw - 520px));
+      aspect-ratio: 1080 / 1920;
+      min-width: 330px;
+      user-select: none;
+      touch-action: none;
+      background: #d9efff;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(34, 83, 130, 0.18);
+    }
+
+    .stage img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: fill;
+      pointer-events: none;
+    }
+
+    .stage img.hudArt {
+      inset: auto;
+      left: 0;
+      width: 100%;
+      object-fit: fill;
+      z-index: 6;
+    }
+
+    .stage img.bottomHudArt {
+      top: 65.1%;
+      height: 34.9%;
+    }
+
+    .runtimeChrome {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .runtimeSprite {
+      position: absolute;
+      object-fit: fill;
+      pointer-events: none;
+      z-index: 1;
+      transform: translate(-50%, -50%);
+    }
+
+    .objectivePlateBg {
+      position: absolute;
+      border-radius: 42px;
+      background: rgba(244, 251, 255, 0.66);
+      border: 2px solid rgba(255, 255, 255, 0.58);
+      box-shadow: inset 0 8px 14px rgba(255, 255, 255, 0.24);
+    }
+
+    .objectivePlateBg::before {
+      content: "";
+      position: absolute;
+      left: 4%;
+      top: 12%;
+      width: 92%;
+      height: 34%;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.26);
+    }
+
+    .flowSvg {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 28;
+    }
+
+    .item {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      cursor: grab;
+      touch-action: none;
+      z-index: 20;
+    }
+
+    .item:active {
+      cursor: grabbing;
+    }
+
+    .item.selected {
+      outline: 3px solid #ff4f57;
+      outline-offset: 3px;
+      z-index: 35;
+    }
+
+    .labelItem {
+      border: 2px dashed rgba(47, 142, 232, 0.85);
+      background: rgba(255, 255, 255, 0.35);
+      color: #1f6eb6;
+      font-weight: 900;
+      text-shadow: 0 2px 0 rgba(255, 255, 255, 0.95);
+    }
+
+    .cardItem {
+      border-radius: 18px;
+      border: 2px solid rgba(255, 255, 255, 0.85);
+      background: rgba(255, 255, 255, 0.72);
+      color: #23304a;
+      font-weight: 900;
+      text-shadow: 0 2px 0 #fff;
+    }
+
+    .rectItem {
+      border: 3px dashed rgba(255, 177, 42, 0.95);
+      border-radius: 18px;
+      background: rgba(255, 177, 42, 0.12);
+      color: #995f00;
+      font-weight: 900;
+    }
+
+    .connectorItem {
+      border: 3px solid rgba(255, 177, 42, 0.95);
+      border-radius: 999px;
+      background:
+        linear-gradient(180deg, rgba(154, 237, 255, 0.86), rgba(31, 147, 232, 0.9)),
+        linear-gradient(90deg, rgba(255, 177, 42, 0.96) 0 10%, transparent 10% 90%, rgba(255, 177, 42, 0.96) 90%);
+      color: #ffffff;
+      font-weight: 900;
+      text-shadow: 0 2px 0 rgba(18, 80, 150, 0.55);
+      box-shadow: 0 0 0 5px rgba(255, 220, 62, 0.22);
+    }
+
+    .spriteItem {
+      border: 2px dashed rgba(255, 79, 87, 0.65);
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.08);
+      color: #ff4f57;
+      font-weight: 900;
+      text-shadow: 0 2px 0 #fff;
+    }
+
+    .spriteItem img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      opacity: 0.92;
+    }
+
+    .spriteItem span {
+      position: relative;
+      z-index: 1;
+      align-self: end;
+      margin-bottom: -24px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.85);
+    }
+
+    .resizeHandle {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border: 3px solid #fff;
+      border-radius: 999px;
+      background: #ffb12a;
+      box-shadow: 0 0 0 3px rgba(31, 118, 190, 0.75);
+      cursor: ew-resize;
+      z-index: 40;
+    }
+
+    .resizeHandle.right {
+      right: -13px;
+      top: 50%;
+      transform: translate(50%, -50%);
+    }
+
+    .resizeHandle.corner {
+      right: -13px;
+      bottom: -13px;
+      transform: translate(50%, 50%);
+      cursor: nwse-resize;
+    }
+
+    .gaugeItem {
+      border: 3px solid rgba(31, 118, 190, 0.95);
+      border-radius: 999px;
+      background: rgba(255, 248, 235, 0.98);
+      box-shadow: inset 0 10px 18px rgba(255, 255, 255, 0.55);
+      overflow: visible;
+    }
+
+    .gaugeItem .track {
+      position: absolute;
+      left: 4.5%;
+      right: 4.5%;
+      top: 18%;
+      bottom: 18%;
+      border-radius: 999px;
+      background: rgba(252, 247, 236, 0.98);
+      border: 2px solid rgba(235, 221, 193, 0.95);
+      overflow: hidden;
+    }
+
+    .gaugeItem .track::before {
+      content: "";
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 8px;
+      height: 20%;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.46);
+    }
+
+    .gaugeItem .fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(118, 220, 255, 0.98), rgba(35, 135, 230, 0.98));
+      box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.42);
+    }
+
+    .gaugeItem .targetLine {
+      position: absolute;
+      top: -10%;
+      bottom: -10%;
+      width: 5px;
+      border-radius: 999px;
+      background: #ffb12a;
+      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.55);
+      transform: translateX(-50%);
+    }
+
+    .pointItem {
+      width: 22px;
+      height: 22px;
+      border-radius: 999px;
+      border: 3px solid #fff;
+      background: #62d4ff;
+      box-shadow: 0 0 0 3px rgba(31, 118, 190, 0.65);
+    }
+
+    .side {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 27px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 15px;
+    }
+
+    .pill {
+      padding: 10px 12px;
+      border-radius: 14px;
+      background: #eef7ff;
+      color: #1f6eb6;
+      font-weight: 800;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    input,
+    textarea {
+      width: 100%;
+      border: 2px solid var(--line);
+      border-radius: 12px;
+      background: #f7fbff;
+      color: var(--ink);
+      font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+
+    input {
+      padding: 9px 10px;
+    }
+
+    textarea {
+      min-height: 250px;
+      resize: vertical;
+      padding: 12px;
+      font-size: 12px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .sizeTools {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+      padding: 10px;
+      border: 2px solid var(--line);
+      border-radius: 16px;
+      background: #f7fbff;
+    }
+
+    .sizeTools button {
+      padding: 10px 6px;
+      font-size: 13px;
+      border-radius: 12px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 14px;
+      padding: 12px 10px;
+      background: var(--blue);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: inset 0 -3px rgba(24, 94, 168, 0.35);
+    }
+
+    button.secondary {
+      background: #fff;
+      color: var(--ink);
+      border: 2px solid var(--line);
+      box-shadow: none;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    @media (max-width: 930px) {
+      .app {
+        grid-template-columns: 1fr;
+        padding: 10px;
+      }
+
+      .side {
+        order: -1;
+      }
+
+      .stage {
+        width: min(92vw, 560px);
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <section class="previewShell">
+      <div class="stage" id="stage">
+        <img src="../cocos-neural-pipe/assets/resources/art/level1/gameplay-bg-clean.png" alt="第 1 关纯背景">
+        <img class="hudArt bottomHudArt" src="../cocos-neural-pipe/assets/resources/art/level1/ui-bottom-v2.png" alt="底栏参考">
+        <div class="runtimeChrome" id="runtimeChrome"></div>
+        <svg class="flowSvg" id="flowSvg" viewBox="0 0 1080 1920"></svg>
+        <div id="overlay"></div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <div>
+        <h1>第 1 关 UI 对齐</h1>
+        <p>拖动左侧的文字框、标签、水位条、黄框和蓝点。坐标使用 Cocos 固定画布：中心是 (0, 0)，上方为正 y。</p>
+      </div>
+
+      <div class="pill" id="selectedName">未选中元素</div>
+
+      <div class="grid">
+        <label>X <input id="fieldX" type="number" step="1"></label>
+        <label>Y <input id="fieldY" type="number" step="1"></label>
+        <label>宽 <input id="fieldWidth" type="number" step="1"></label>
+        <label>高 <input id="fieldHeight" type="number" step="1"></label>
+        <label>字号 <input id="fieldSize" type="number" step="1"></label>
+        <label>副字号 <input id="fieldSubSize" type="number" step="1"></label>
+      </div>
+
+      <div class="sizeTools">
+        <button id="shorterBtn">变短</button>
+        <button id="longerBtn">变长</button>
+        <button id="thinnerBtn">变薄</button>
+        <button id="thickerBtn">变厚</button>
+      </div>
+
+      <p class="hint">选中“通水接头”后，用按钮调长度和粗细；也可以直接改“宽/高”。按住 Shift 点击按钮会一次调大步长。</p>
+
+      <div class="actions">
+        <button id="copyTsBtn">复制 TS</button>
+        <button id="copyJsonBtn">复制 JSON</button>
+        <button id="resetBtn" class="secondary">重置</button>
+      </div>
+
+      <p class="hint" id="copyHint">复制被浏览器拦截时，会自动选中文本；按 Cmd+C 就可以。</p>
+      <textarea id="output" readonly></textarea>
+    </aside>
+  </main>
+
+  <script>
+    const DEFAULT_LAYOUT = {
+      background: {
+        path: "art/level1/gameplay-bg-clean",
+        x: 0,
+        y: 0,
+        width: 1080,
+        height: 1920
+      },
+      hudArt: {
+        top: { path: "art/level1/ui-top", x: 0, y: 826, width: 1080, height: 216 },
+        titleWidget: { path: "art/level1/ui-title-widget-v2", x: -190, y: 812, width: 640, height: 170 },
+        mapButton: { path: "art/level1/ui-map-button-v2", x: 419, y: 812, width: 164, height: 164 },
+        bottom: { path: "art/level1/ui-bottom-v2", x: 0, y: -625, width: 1080, height: 670 }
+      },
+      top: {
+        chapter: { x: -282, y: 801, size: 36, width: 180, height: 58 },
+        title: { x: -103, y: 808, size: 50, width: 390, height: 72 },
+        objective: { x: 4, y: 687, size: 37, width: 753, height: 62 },
+        mapButton: { x: 419, y: 812, width: 190, height: 150 }
+      },
+      visualNodes: [
+        {
+          id: "source",
+          kind: "source",
+          x: -394,
+          y: 2,
+          width: 236,
+          height: 220,
+          label: { x: -375, y: -111, width: 162, height: 78, titleSize: 38, subtitleSize: 27 },
+          pulse: { x: -374, y: 19 },
+          ports: {
+            output: { x: -303, y: 13 },
+            right: { x: -303, y: 13 }
+          }
+        },
+        {
+          id: "merge",
+          kind: "merge",
+          x: 30,
+          y: 26,
+          width: 250,
+          height: 173,
+          label: { x: 44, y: -133, width: 170, height: 82, titleSize: 38, subtitleSize: 27 },
+          pulse: { x: 38, y: 33 },
+          ports: {
+            input: { x: -76, y: 8 },
+            left: { x: -76, y: 8 },
+            output: { x: 142, y: 9 },
+            right: { x: 142, y: 9 }
+          }
+        },
+        {
+          id: "tank",
+          kind: "tank",
+          x: 404,
+          y: 82,
+          width: 178,
+          height: 276,
+          label: { x: 414, y: -106, width: 170, height: 82, titleSize: 38, subtitleSize: 27 },
+          pulse: { x: 408, y: 82 },
+          ports: {
+            input: { x: 313, y: 9 },
+            left: { x: 313, y: 9 }
+          }
+        }
+      ],
+      scene: {
+        source: { x: -386, y: -150, width: 162, height: 78, titleSize: 38, subtitleSize: 27 },
+        merge: { x: 40, y: -164, width: 170, height: 82, titleSize: 38, subtitleSize: 27 },
+        tank: { x: 391, y: -158, width: 170, height: 82, titleSize: 38, subtitleSize: 27 }
+      },
+      visualPipes: [
+        {
+          pipeId: "x1",
+          state: "supply",
+          from: { nodeId: "source", port: "output" },
+          to: { nodeId: "merge", port: "input" },
+          connector: { x: -185, y: 10, width: 264, height: 64 },
+          hitbox: { x: -184, y: 4, width: 230, height: 190 },
+          glow: { x: -187, y: 2, width: 174, height: 174 },
+          prompt: { x: -193, y: 4, size: 34, width: 240, height: 56 },
+          flowPath: [
+            { x: -303, y: 13 },
+            { x: -235, y: 6 },
+            { x: -152, y: 6 },
+            { x: -76, y: 8 }
+          ]
+        },
+        {
+          pipeId: "merge-to-tank",
+          state: "supply",
+          from: { nodeId: "merge", port: "output" },
+          to: { nodeId: "tank", port: "input" },
+          connector: { x: 229, y: 10, width: 246, height: 64 },
+          hitbox: { x: 228, y: 10, width: 0, height: 0 },
+          glow: { x: 228, y: 10, width: 0, height: 0 },
+          prompt: { x: 228, y: 10, size: 1, width: 1, height: 1 },
+          flowPath: [
+            { x: 142, y: 9 },
+            { x: 232, y: 8 },
+            { x: 313, y: 9 }
+          ]
+        }
+      ],
+      pipe: {
+        glow: { x: -187, y: 2, width: 174, height: 174 },
+        connector: { x: -185, y: 10, width: 262, height: 64 },
+        prompt: { x: -193, y: 4, size: 34, width: 240, height: 56 },
+        hitbox: { x: -184, y: 4, width: 230, height: 190 }
+      },
+      gauge: {
+        startX: -292,
+        width: 702,
+        y: -424,
+        max: 1.2,
+        fillHeight: 78,
+        targetHeight: 92,
+        title: { x: -167, y: -427, size: 35, width: 218, height: 60 },
+        targetText: { x: 290, y: -426, size: 35, width: 280, height: 60 }
+      },
+      status: {
+        current: { x: 408, y: -231, size: 34, width: 200, height: 106 }
+      },
+      buttons: {
+        backText: { x: -287, y: -812, size: 48, width: 280, height: 82 },
+        mainText: { x: 193, y: -810, size: 54, width: 430, height: 88 },
+        backHitbox: { x: -290, y: -809, width: 330, height: 112 },
+        mainHitbox: { x: 185, y: -812, width: 500, height: 120 }
+      },
+      flow: {
+        sourceToMerge: [
+          { x: -303, y: 13 },
+          { x: -235, y: 6 },
+          { x: -152, y: 6 },
+          { x: -76, y: 8 }
+        ],
+        mergeToTank: [
+          { x: 142, y: 9 },
+          { x: 232, y: 8 },
+          { x: 313, y: 9 }
+        ],
+        dotCount: 2
+      },
+      ambient: {
+        source: { x: -389, y: 179 },
+        merge: { x: 27, y: 53 },
+        tank: { x: 386, y: 30 }
+      }
+    };
+
+    const TITLE_WIDGET_IMAGE = "../cocos-neural-pipe/assets/resources/art/level1/ui-title-widget-v2.png";
+    const MAP_BUTTON_IMAGE = "../cocos-neural-pipe/assets/resources/art/level1/ui-map-button-v2.png";
+    const STORAGE_KEY = "neural-pipe-level1-layout-v9";
+    const stage = document.getElementById("stage");
+    const overlay = document.getElementById("overlay");
+    const runtimeChrome = document.getElementById("runtimeChrome");
+    const flowSvg = document.getElementById("flowSvg");
+    const output = document.getElementById("output");
+    const selectedName = document.getElementById("selectedName");
+    const copyHint = document.getElementById("copyHint");
+    const fields = {
+      x: document.getElementById("fieldX"),
+      y: document.getElementById("fieldY"),
+      width: document.getElementById("fieldWidth"),
+      height: document.getElementById("fieldHeight"),
+      size: document.getElementById("fieldSize"),
+      subtitleSize: document.getElementById("fieldSubSize")
+    };
+
+    let layout = loadLayout();
+    let selectedPath = "top.title";
+    let drag = null;
+
+    const specs = [
+      { path: "hudArt.titleWidget", kind: "rect", text: "标题组件背景" },
+      { path: "hudArt.mapButton", kind: "rect", text: "地图图标组件" },
+      { path: "top.chapter", kind: "label", text: "第 1 关" },
+      { path: "top.title", kind: "label", text: "接通山泉" },
+      { path: "top.objective", kind: "label", text: "接上第一根输水管，让供水池贴近黄线。" },
+      { path: "top.mapButton", kind: "rect", text: "地图热区" },
+      { path: "visualNodes.0", kind: "sprite", text: "山泉节点", image: "../cocos-neural-pipe/assets/resources/art/level1/spring-node.png" },
+      { path: "visualNodes.1", kind: "sprite", text: "合流池节点", image: "../cocos-neural-pipe/assets/resources/art/level1/merge-node.png" },
+      { path: "visualNodes.2", kind: "sprite", text: "供水池节点", image: "../cocos-neural-pipe/assets/resources/art/level1/tank-node.png" },
+      { path: "visualNodes.0.label", kind: "card", text: "山泉\n流量 0.72" },
+      { path: "visualNodes.1.label", kind: "card", text: "合流池\n水流汇入" },
+      { path: "visualNodes.2.label", kind: "card", text: "供水池\n刚刚好" },
+      { path: "visualPipes.0.glow", kind: "rect", text: "管口光" },
+      { path: "visualPipes.0.connector", kind: "connector", text: "玩家通水管" },
+      { path: "visualPipes.1.connector", kind: "connector", text: "固定通水管" },
+      { path: "visualPipes.0.prompt", kind: "label", text: "点亮管口" },
+      { path: "visualPipes.0.hitbox", kind: "rect", text: "管口热区" },
+      { path: "gauge", kind: "gauge", text: "水位条" },
+      { path: "gauge.title", kind: "label", text: "供水池水位" },
+      { path: "gauge.targetText", kind: "label", text: "黄线 0.72" },
+      { path: "status.current", kind: "label", text: "当前 0.72 · 刚刚好" },
+      { path: "buttons.backText", kind: "label", text: "返回" },
+      { path: "buttons.mainText", kind: "label", text: "通水成功" },
+      { path: "buttons.backHitbox", kind: "rect", text: "返回热区" },
+      { path: "buttons.mainHitbox", kind: "rect", text: "主按钮热区" },
+      { path: "visualNodes.0.pulse", kind: "point", text: "泉动画" },
+      { path: "visualNodes.1.pulse", kind: "point", text: "池动画" },
+      { path: "visualNodes.2.pulse", kind: "point", text: "缸动画" }
+    ];
+
+    function flowSpecs() {
+      return [
+        ...layout.visualPipes[0].flowPath.map((_, index) => ({
+          path: `visualPipes.0.flowPath.${index}`,
+          kind: "point",
+          text: `水珠A${index + 1}`
+        })),
+        ...layout.visualPipes[1].flowPath.map((_, index) => ({
+          path: `visualPipes.1.flowPath.${index}`,
+          kind: "point",
+          text: `水珠B${index + 1}`
+        }))
+      ];
+    }
+
+    function clone(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function loadLayout() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return normalizeLayout(raw ? JSON.parse(raw) : clone(DEFAULT_LAYOUT));
+      } catch {
+        return clone(DEFAULT_LAYOUT);
+      }
+    }
+
+    function normalizeLayout(value) {
+      const merged = clone(DEFAULT_LAYOUT);
+      deepAssign(merged, value);
+      return merged;
+    }
+
+    function deepAssign(target, source) {
+      if (!source || typeof source !== "object") return target;
+      Object.entries(source).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          target[key] = clone(value);
+        } else if (value && typeof value === "object" && target[key] && typeof target[key] === "object" && !Array.isArray(target[key])) {
+          deepAssign(target[key], value);
+        } else {
+          target[key] = value;
+        }
+      });
+      return target;
+    }
+
+    function saveLayout() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(layout));
+      output.value = toTs();
+    }
+
+    function pathParts(path) {
+      return path.split(".").map((part) => (/^\d+$/.test(part) ? Number(part) : part));
+    }
+
+    function getByPath(path) {
+      return pathParts(path).reduce((target, key) => target[key], layout);
+    }
+
+    function visualValueForSpec(spec) {
+      if (spec.kind === "gauge") {
+        const shellHeight = Math.max(layout.gauge.fillHeight + 34, layout.gauge.targetHeight + 18);
+        return {
+          x: layout.gauge.startX + layout.gauge.width / 2,
+          y: layout.gauge.y,
+          width: layout.gauge.width + 68,
+          height: shellHeight
+        };
+      }
+      return getByPath(spec.path);
+    }
+
+    function applyVisualPosition(path, x, y) {
+      if (path === "gauge") {
+        layout.gauge.startX = Math.round(x - layout.gauge.width / 2);
+        layout.gauge.y = Math.round(y);
+        return;
+      }
+      const value = getByPath(path);
+      value.x = Math.round(x);
+      value.y = Math.round(y);
+    }
+
+    function logicalToPercent(point) {
+      return {
+        left: (point.x + 540) / 1080 * 100,
+        top: (960 - point.y) / 1920 * 100
+      };
+    }
+
+    function logicalToViewBox(point) {
+      return `${point.x + 540},${960 - point.y}`;
+    }
+
+    function eventToLogical(event) {
+      const rect = stage.getBoundingClientRect();
+      const x = (event.clientX - rect.left) / rect.width * 1080 - 540;
+      const y = 960 - (event.clientY - rect.top) / rect.height * 1920;
+      return { x: Math.round(x), y: Math.round(y) };
+    }
+
+    function setSelected(path) {
+      selectedPath = path;
+      render();
+      updateInspector();
+    }
+
+    function render() {
+      overlay.innerHTML = "";
+      renderRuntimeChrome();
+      renderFlowLines();
+      [...specs, ...flowSpecs()].forEach((spec) => {
+        const value = visualValueForSpec(spec);
+        const pos = logicalToPercent(value);
+        const item = document.createElement("div");
+        item.className = `item ${spec.kind}Item${selectedPath === spec.path ? " selected" : ""}`;
+        item.dataset.path = spec.path;
+        item.style.left = `${pos.left}%`;
+        item.style.top = `${pos.top}%`;
+        if (value.width) item.style.width = `${value.width / 1080 * 100}%`;
+        if (value.height) item.style.height = `${value.height / 1920 * 100}%`;
+        if (value.size) item.style.fontSize = `${Math.max(12, value.size * stage.clientWidth / 1080)}px`;
+        if (spec.kind === "card") item.style.fontSize = `${Math.max(12, value.titleSize * stage.clientWidth / 1080)}px`;
+        if (spec.kind === "gauge") {
+          const track = document.createElement("span");
+          track.className = "track";
+          const fill = document.createElement("span");
+          fill.className = "fill";
+          fill.style.width = `${Math.max(10, Math.min(100, 0.72 / layout.gauge.max * 100))}%`;
+          const target = document.createElement("span");
+          target.className = "targetLine";
+          target.style.left = `${Math.max(0, Math.min(1, 0.72 / layout.gauge.max)) * 100}%`;
+          track.appendChild(fill);
+          track.appendChild(target);
+          item.appendChild(track);
+        } else if (spec.kind === "sprite") {
+          const img = document.createElement("img");
+          img.src = spec.image;
+          img.alt = spec.text;
+          const text = document.createElement("span");
+          text.textContent = spec.text;
+          item.appendChild(img);
+          item.appendChild(text);
+        } else {
+          item.textContent = spec.text;
+        }
+        if (spec.kind === "connector" || spec.kind === "gauge") {
+          item.appendChild(createResizeHandle("right", spec.path, "width"));
+          item.appendChild(createResizeHandle("corner", spec.path, "both"));
+        }
+        item.addEventListener("pointerdown", (event) => startDrag(event, spec.path));
+        overlay.appendChild(item);
+      });
+    }
+
+    function renderRuntimeChrome() {
+      runtimeChrome.innerHTML = "";
+
+      const titleBg = document.createElement("img");
+      titleBg.className = "runtimeSprite";
+      titleBg.src = TITLE_WIDGET_IMAGE;
+      titleBg.alt = "标题组件";
+      const titlePos = logicalToPercent(layout.hudArt.titleWidget);
+      titleBg.style.left = `${titlePos.left}%`;
+      titleBg.style.top = `${titlePos.top}%`;
+      titleBg.style.width = `${layout.hudArt.titleWidget.width / 1080 * 100}%`;
+      titleBg.style.height = `${layout.hudArt.titleWidget.height / 1920 * 100}%`;
+      runtimeChrome.appendChild(titleBg);
+
+      const objective = document.createElement("div");
+      objective.className = "objectivePlateBg";
+      const objectiveX = layout.top.objective.x;
+      const objectiveY = layout.top.objective.y + 2;
+      const objectiveWidth = layout.top.objective.width + 86;
+      const objectiveHeight = layout.top.objective.height + 34;
+      const objectivePos = logicalToPercent({ x: objectiveX, y: objectiveY });
+      objective.style.left = `${objectivePos.left}%`;
+      objective.style.top = `${objectivePos.top}%`;
+      objective.style.width = `${objectiveWidth / 1080 * 100}%`;
+      objective.style.height = `${objectiveHeight / 1920 * 100}%`;
+      objective.style.transform = "translate(-50%, -50%)";
+      runtimeChrome.appendChild(objective);
+
+      const mapButton = document.createElement("img");
+      mapButton.className = "runtimeSprite";
+      mapButton.src = MAP_BUTTON_IMAGE;
+      mapButton.alt = "地图按钮";
+      const mapPos = logicalToPercent(layout.hudArt.mapButton);
+      mapButton.style.left = `${mapPos.left}%`;
+      mapButton.style.top = `${mapPos.top}%`;
+      mapButton.style.width = `${layout.hudArt.mapButton.width / 1080 * 100}%`;
+      mapButton.style.height = `${layout.hudArt.mapButton.height / 1920 * 100}%`;
+      runtimeChrome.appendChild(mapButton);
+    }
+
+    function createResizeHandle(className, path, axis) {
+      const handle = document.createElement("span");
+      handle.className = `resizeHandle ${className}`;
+      handle.addEventListener("pointerdown", (event) => startResize(event, path, axis));
+      return handle;
+    }
+
+    function renderFlowLines() {
+      flowSvg.innerHTML = "";
+      [
+        layout.visualPipes[0].flowPath,
+        layout.visualPipes[1].flowPath
+      ].forEach((points) => {
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+        line.setAttribute("points", points.map(logicalToViewBox).join(" "));
+        line.setAttribute("fill", "none");
+        line.setAttribute("stroke", "rgba(98, 212, 255, 0.7)");
+        line.setAttribute("stroke-width", "7");
+        line.setAttribute("stroke-linecap", "round");
+        line.setAttribute("stroke-linejoin", "round");
+        flowSvg.appendChild(line);
+      });
+    }
+
+    function startDrag(event, path) {
+      event.preventDefault();
+      const spec = [...specs, ...flowSpecs()].find((item) => item.path === path);
+      const value = spec ? visualValueForSpec(spec) : getByPath(path);
+      const point = eventToLogical(event);
+      drag = {
+        mode: "move",
+        path,
+        dx: value.x - point.x,
+        dy: value.y - point.y
+      };
+      setSelected(path);
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    function startResize(event, path, axis) {
+      event.preventDefault();
+      event.stopPropagation();
+      const spec = [...specs, ...flowSpecs()].find((item) => item.path === path);
+      const value = spec ? visualValueForSpec(spec) : getByPath(path);
+      drag = {
+        mode: "resize",
+        path,
+        axis,
+        centerX: value.x,
+        centerY: value.y
+      };
+      setSelected(path);
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+
+    window.addEventListener("pointermove", (event) => {
+      if (!drag) return;
+      const point = eventToLogical(event);
+      if (drag.mode === "resize") {
+        resizeFromPointer(drag.path, drag.axis, point, drag.centerX, drag.centerY);
+      } else {
+        applyVisualPosition(drag.path, point.x + drag.dx, point.y + drag.dy);
+      }
+      saveLayout();
+      render();
+      updateInspector();
+    });
+
+    window.addEventListener("pointerup", () => {
+      drag = null;
+    });
+
+    window.addEventListener("keydown", (event) => {
+      if (!selectedPath || document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA") return;
+      const selectedSpec = [...specs, ...flowSpecs()].find((item) => item.path === selectedPath);
+      const value = selectedSpec ? visualValueForSpec(selectedSpec) : getByPath(selectedPath);
+      const step = event.shiftKey ? 10 : 1;
+      if (event.key === "ArrowLeft") value.x -= step;
+      else if (event.key === "ArrowRight") value.x += step;
+      else if (event.key === "ArrowUp") value.y += step;
+      else if (event.key === "ArrowDown") value.y -= step;
+      else if (event.code === "BracketLeft") return resizeWithKey(event, "width", -(event.shiftKey ? 24 : 8));
+      else if (event.code === "BracketRight") return resizeWithKey(event, "width", event.shiftKey ? 24 : 8);
+      else if (event.code === "Semicolon") return resizeWithKey(event, "height", -(event.shiftKey ? 16 : 4));
+      else if (event.code === "Quote") return resizeWithKey(event, "height", event.shiftKey ? 16 : 4);
+      else return;
+      event.preventDefault();
+      applyVisualPosition(selectedPath, value.x, value.y);
+      saveLayout();
+      render();
+      updateInspector();
+    });
+
+    function resizeWithKey(event, axis, delta) {
+      event.preventDefault();
+      resizeSelected(axis, delta);
+    }
+
+    function resizeFromPointer(path, axis, point, centerX, centerY) {
+      if (path === "gauge") {
+        if (axis === "width" || axis === "both") {
+          layout.gauge.width = Math.max(80, Math.round(Math.abs(point.x - centerX) * 2 - 68));
+        }
+        if (axis === "height" || axis === "both") {
+          layout.gauge.fillHeight = Math.max(16, Math.round(Math.abs(point.y - centerY) * 2 - 34));
+        }
+        return;
+      }
+      const value = getByPath(path);
+      if ((axis === "width" || axis === "both") && value.width !== undefined) {
+        value.width = Math.max(20, Math.round(Math.abs(point.x - centerX) * 2));
+      }
+      if ((axis === "height" || axis === "both") && value.height !== undefined) {
+        value.height = Math.max(8, Math.round(Math.abs(point.y - centerY) * 2));
+      }
+    }
+
+    function updateInspector() {
+      const selectedSpec = [...specs, ...flowSpecs()].find((item) => item.path === selectedPath);
+      const value = selectedSpec ? visualValueForSpec(selectedSpec) : getByPath(selectedPath);
+      selectedName.textContent = selectedPath;
+      setInput("x", value.x);
+      setInput("y", value.y);
+      setInput("width", value.width);
+      setInput("height", value.height);
+      setInput("size", value.size ?? value.titleSize);
+      setInput("subtitleSize", value.subtitleSize);
+    }
+
+    function setInput(name, value) {
+      fields[name].disabled = value === undefined;
+      fields[name].value = value === undefined ? "" : value;
+    }
+
+    Object.entries(fields).forEach(([name, input]) => {
+      input.addEventListener("input", () => {
+        const next = Number(input.value);
+        if (!Number.isFinite(next)) return;
+        if (selectedPath === "gauge") {
+          if (name === "x") layout.gauge.startX = Math.round(next - layout.gauge.width / 2);
+          else if (name === "y") layout.gauge.y = next;
+          else if (name === "width") layout.gauge.width = Math.max(80, Math.round(next - 68));
+          else if (name === "height") layout.gauge.fillHeight = Math.max(16, Math.round(next - 34));
+          saveLayout();
+          render();
+          updateInspector();
+          return;
+        }
+        const value = getByPath(selectedPath);
+        if (name === "size" && value.titleSize !== undefined) {
+          value.titleSize = next;
+        } else if (name in value) {
+          value[name] = next;
+        }
+        saveLayout();
+        render();
+      });
+    });
+
+    function resizeSelected(axis, delta) {
+      const selectedSpec = [...specs, ...flowSpecs()].find((item) => item.path === selectedPath);
+      const value = selectedSpec ? visualValueForSpec(selectedSpec) : getByPath(selectedPath);
+      if (!value || value[axis] === undefined) return;
+
+      const min = axis === "width" ? 20 : 8;
+      const next = Math.max(min, Math.round(value[axis] + delta));
+
+      if (selectedPath === "gauge") {
+        if (axis === "width") layout.gauge.width = Math.max(80, next - 68);
+        if (axis === "height") layout.gauge.fillHeight = Math.max(16, next - 34);
+      } else {
+        getByPath(selectedPath)[axis] = next;
+      }
+
+      saveLayout();
+      render();
+      updateInspector();
+    }
+
+    function resizeStep(event, small = 8, large = 24) {
+      return event.shiftKey ? large : small;
+    }
+
+    document.getElementById("shorterBtn").addEventListener("click", (event) => resizeSelected("width", -resizeStep(event)));
+    document.getElementById("longerBtn").addEventListener("click", (event) => resizeSelected("width", resizeStep(event)));
+    document.getElementById("thinnerBtn").addEventListener("click", (event) => resizeSelected("height", -resizeStep(event, 4, 16)));
+    document.getElementById("thickerBtn").addEventListener("click", (event) => resizeSelected("height", resizeStep(event, 4, 16)));
+
+    function toTs() {
+      return `export type LabelLayout = {
+  x: number;
+  y: number;
+  size: number;
+  width: number;
+  height: number;
+};
+
+export type RectLayout = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
+export type PointLayout = {
+  x: number;
+  y: number;
+};
+
+export type GameLabelLayout = RectLayout & {
+  titleSize: number;
+  subtitleSize: number;
+};
+
+export type VisualNodeKind = "source" | "merge" | "tank" | "factory";
+export type VisualPortName = "input" | "output" | "left" | "right" | "top" | "bottom";
+
+export type VisualNodeLayout = RectLayout & {
+  id: string;
+  kind: VisualNodeKind;
+  label: GameLabelLayout;
+  pulse: PointLayout;
+  ports?: Partial<Record<VisualPortName, PointLayout>>;
+};
+
+export type VisualPipeState = "empty" | "supply" | "pump";
+
+export type VisualPipeLayout = {
+  pipeId: string;
+  state: VisualPipeState;
+  from?: VisualPipeEndpoint;
+  to?: VisualPipeEndpoint;
+  connector: RectLayout;
+  hitbox: RectLayout;
+  glow: RectLayout;
+  prompt: LabelLayout;
+  flowPath: PointLayout[];
+  thickness?: number;
+};
+
+export type VisualPipeEndpoint = {
+  nodeId: string;
+  port: VisualPortName;
+};
+
+export const LEVEL_ONE_LAYOUT = ${JSON.stringify(layout, null, 2)} as const;
+`;
+    }
+
+    async function copyText(text) {
+      output.value = text;
+      output.focus();
+      output.select();
+      let copied = false;
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(text);
+          copied = true;
+        }
+      } catch {
+        copied = false;
+      }
+      if (!copied) {
+        try {
+          copied = document.execCommand("copy");
+        } catch {
+          copied = false;
+        }
+      }
+      copyHint.textContent = copied ? "已复制。" : "浏览器拦截了自动复制，文本已经选中，按 Cmd+C 即可。";
+    }
+
+    document.getElementById("copyTsBtn").addEventListener("click", () => copyText(toTs()));
+    document.getElementById("copyJsonBtn").addEventListener("click", () => copyText(JSON.stringify(layout, null, 2)));
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      layout = clone(DEFAULT_LAYOUT);
+      saveLayout();
+      render();
+      updateInspector();
+    });
+
+    saveLayout();
+    render();
+    updateInspector();
+  </script>
+</body>
+</html>
